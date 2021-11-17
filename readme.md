@@ -60,8 +60,8 @@ Response coverage:
 |  2  | Operations      |                          |  
 |  3  | Content-type    | Content-type             |  
 |  4  | Parameters      | Status code class        |  
-|  5  | Parameters      | Status codes             |  
-|  6  | Parameters      | Response body properties |  
+|  5  |                 | Status codes             |  
+|  6  |                 | Response body properties |  
 |  7  | Operation flows |                          |
 
 ## Object Model
@@ -106,7 +106,7 @@ Specification:
 
 ## References
 
-Inspired by ["A. Martin-Lopez, S. Segura, A. Ruiz-Cortés. 2019. Test Coverage Criteria for RESTful Web APIs"](https://personal.us.es/amarlop/wp-content/uploads/2019/09/Test_Coverage_Criteria_for_RESTful_Web_APIs.pdf).
+[A. Martin-Lopez, S. Segura, A. Ruiz-Cortés. 2019. **Test Coverage Criteria for RESTful Web APIs.** ACM SIGSOFT International Workshop on Automating TEST Case Design, Selection, and Evaluation (A-TEST'19).](https://personal.us.es/amarlop/wp-content/uploads/2019/09/Test_Coverage_Criteria_for_RESTful_Web_APIs.pdf)
 
 ## License
 
