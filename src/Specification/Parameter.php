@@ -4,35 +4,26 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Parameter
 {
-    /** @var string */
-    private $name;
+    private string $name;
 
-    /** @var string[]|null */
+    private string $type;
+
     private $values;
 
-    /**
-     * @param string $name
-     * @param string[]|null $values
-     */
-    public function __construct($name, $values = null)
+    public function __construct(string $name, string $type)
     {
         $this->name   = $name;
-        $this->values = $values;
+        $this->type   = $type;
+        $this->values = null;
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @return string[]|null
-     */
-    public function getValues()
+    public function setValues($values): void
     {
-        return $this->values;
+        $this->values = $values;
     }
 }

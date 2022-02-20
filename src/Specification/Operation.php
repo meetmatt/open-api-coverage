@@ -5,7 +5,7 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 class Operation
 {
     /** @var string */
-    private $method;
+    private $httpMethod;
 
     /** @var array<string, Parameter> */
     private $pathParameters;
@@ -20,12 +20,12 @@ class Operation
     private $responses;
 
     /**
-     * @param string $method
+     * @param string $httpMethod
      */
-    public function __construct($method)
+    public function __construct($httpMethod)
     {
-        $this->method          = $method;
-        $this->pathParameters  = [];
+        $this->httpMethod     = $httpMethod;
+        $this->pathParameters = [];
         $this->queryParameters = [];
         $this->requestBodies   = [];
         $this->responses       = [];
@@ -34,9 +34,9 @@ class Operation
     /**
      * @return string
      */
-    public function getMethod()
+    public function getHttpMethod()
     {
-        return $this->method;
+        return $this->httpMethod;
     }
 
     /**

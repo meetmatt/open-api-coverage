@@ -4,21 +4,35 @@
     "keywords":["openapi", "coverage"],
     "type":"library",
     "license":"MIT",
+    "minimum-stability": "stable",
     "authors":[
         {
             "name":"Iurii Golikov",
             "email": "iurii.golikov@gmail.com"
         }
     ],
-    "minimum-stability": "RC",
     "require": {
-        "php": ">=5.6.6 <9.0",
+        "php": "^7.4",
         "cebe/php-openapi": "^1.5"
     },
+    "require-dev": {
+        "codeception/codeception": "^4.1"
+    },
     "autoload":{
-        "classmap": ["src/"]
+        "psr-4": {
+            "MeetMatt\\OpenApiSpecCoverage\\": "src/"
+        }
+    },
+    "autoload-dev":{
+        "psr-4": {
+            "MeetMatt\\OpenApiSpecCoverage\\Test\\Suite\\Integration\\": "test/suite/integration",
+            "MeetMatt\\OpenApiSpecCoverage\\Test\\Support\\": "test/support"
+        }
     },
     "config": {
-        "classmap-authoritative": true
+        "sort-packages": true,
+        "platform": {
+            "php": "7.4.99"
+        }
     }
 }

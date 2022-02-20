@@ -1,0 +1,11 @@
+namespace: MeetMatt\OpenApiSpecCoverage\Test\Support
+actor: Tester
+paths:
+  tests: test/suite
+  log: test/output
+  output: test/output
+  data: test/data
+  support: test/data
+extensions:
+  enabled:
+    - Codeception\Extension\RunFailed

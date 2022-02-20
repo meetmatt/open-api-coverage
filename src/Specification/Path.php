@@ -32,7 +32,7 @@ class Path
      */
     public function addOperation(Operation $operation)
     {
-        $this->operations[$operation->getMethod()] = $operation;
+        $this->operations[$operation->getHttpMethod()] = $operation;
     }
 
     /**
