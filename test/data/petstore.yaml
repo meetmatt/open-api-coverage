@@ -19,9 +19,6 @@ paths:
       description: Returns all pets from the system that the user has access to
       operationId: findPets
       parameters:
-        # ?tags[]=dog&tags[]=cat === ?tags[0]=dog&tags[1]=cat
-        # schema.type=array, name=tags[], values=[schema.items.type, schema.items.enum]
-        # $.tags[string("dog","cat")] -> Parameter("tags", "array", [Value("string", "dog"), Value("string", "cat")])
         - name: tags[]
           in: query
           description: tags to filter by
@@ -29,19 +26,7 @@ paths:
           style: form
           explode: true
           schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - dog
-                - cat
-
-        # ?family[0]=cat&family[1]=dog === ?family[]=cat&family[]=dog
-        # schema.type=array, name=family, values=[schema.items.type, schema.items.enum]
-        # $.family[string("cat","dog")] -> Parameter("family", "array", [Value("string", "cat"), Value("string", "dog")])
-        # Property("family", List(
-        #   Enum("string", ["cat", "dog"])
-        # ))
+            $ref: '#/components/schemas/Tag'
         - name: family
           in: query
           description: families to filter for
@@ -54,42 +39,6 @@ paths:
               enum:
                 - cat
                 - dog
-
-        # &criteria[0][field]=name&criteria[0][op][type]=eq&criteria[0][op][negate]=0&criteria[0][value]=something
-        # &criteria[1][field]=family&criteria[1][op][type]=like&criteria[1][op][negate]=1&criteria[1][value]=whatever
-        # schema.type=array, name=criteria, values=[schema.items.type, object(schema.items.properties)]
-
-        # each property is schema.items.properties of some type.
-        # where type can be also an object, and so on - deeply nested.
-        # Property("criteria", List(
-        #   Object(
-        #     Property("field", Enum("string", ["name", "family"])),
-        #     Property("op", Object(
-        #       Property("type", Enum("string", ["eq", "like"])),
-        #       Property("negate", Enum("integer", [0, 1]))
-        #     ),
-        #     Property("value", "string"),
-        #     Property("listPropEnum", List(Enum("string", ["first", "second"])),
-        #     Property("listPropNumbers", List("integer"))
-        #   )
-        # ))
-        #
-        # Flat list will look like this:
-        #
-        # $.criteria[].field             = <string>"name"
-        # $.criteria[].field             = <string>"family"
-        # $.criteria[].op.type           = <string>"eq"
-        # $.criteria[].op.type           = <string>"like"
-        # $.criteria[].op.negate         = <integer>"0"
-        # $.criteria[].op.negate         = <integer>"1"
-        # $.criteria[].value             = <string>
-        # $.criteria[].listPropEnum[]    = <string>"first"
-        # $.criteria[].listPropEnum[]    = <string>"second"
-        # $.criteria[].listPropNumbers[] = <integer>
-        #
-        # Later it will be used to diff against the flattened request/response object (see Util::flatten)
-        #
-
         - name: criteria
           in: query
           description: search criteria
@@ -121,7 +70,6 @@ paths:
                         - 1
                 value:
                   type: string
-
                 listPropEnum:
                   type: array
                   items:
@@ -134,10 +82,6 @@ paths:
                   type: array
                   items:
                     type: number
-
-        # &object[firstKey]=okay&object[secondKey]=3.14
-        # &limit=100
-        # $.limit[integer]
         - name: object
           in: query
           description: flat object
@@ -151,7 +95,6 @@ paths:
                 type: string
               secondKey:
                 type: number
-
         - name: limit
           in: query
           description: maximum number of results to return
@@ -268,12 +211,16 @@ components:
             - cat
             - dog
         tag:
-          type: array
-          items:
-            type: string
-            enum:
-              - funny
-              - cat
+          $ref: '#/components/schemas/Tag'
+
+    Tag:
+      type: array
+      items:
+        type: string
+        enum:
+          - funny
+          - sleepy
+          - cute
 
     Error:
       type: object

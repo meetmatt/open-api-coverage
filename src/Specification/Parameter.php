@@ -6,15 +6,12 @@ class Parameter
 {
     private string $name;
 
-    private string $type;
+    private TypeAbstract $type;
 
-    private $values;
-
-    public function __construct(string $name, string $type)
+    public function __construct(string $name, TypeAbstract $type)
     {
-        $this->name   = $name;
-        $this->type   = $type;
-        $this->values = null;
+        $this->name = $name;
+        $this->type = $type;
     }
 
     public function getName(): string
@@ -22,8 +19,8 @@ class Parameter
         return $this->name;
     }
 
-    public function setValues($values): void
+    public function getType(): TypeAbstract
     {
-        $this->values = $values;
+        return $this->type;
     }
 }

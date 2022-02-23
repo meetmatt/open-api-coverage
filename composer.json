@@ -13,6 +13,7 @@
     ],
     "require": {
         "php": "^7.4",
+        "ext-json": "*",
         "cebe/php-openapi": "^1.5"
     },
     "require-dev": {
