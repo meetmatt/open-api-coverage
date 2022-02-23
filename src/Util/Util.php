@@ -3,8 +3,8 @@
 namespace MeetMatt\OpenApiSpecCoverage\Util;
 
 use cebe\openapi\spec\Schema;
-use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
 use MeetMatt\OpenApiSpecCoverage\Specification\Property;
+use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeAbstract;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeArray;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeEnum;
@@ -13,65 +13,6 @@ use MeetMatt\OpenApiSpecCoverage\Specification\TypeScalar;
 
 class Util
 {
-    /**
-     * @param $openApi
-     * @return array<string, array<string, array<Parameter|Property>>>
-     */
-    public static function buildSpecification($openApi): array
-    {
-        # Build params for each path
-        $paths = [];
-        foreach ($openApi->paths as $route => $path) {
-            // TODO: create Path object
-            $paths[$route] = [];
-            foreach ($path->getOperations() as $method => $operation) {
-                // TODO: build Request object
-                $params = [];
-                if (isset($operation->parameters) && is_iterable($operation->parameters)) {
-                    $parameters = $operation->parameters;
-                    foreach ($parameters as $parameter) {
-                        $name = $parameter->name;
-                        if (strpos($name, '[]') === strlen($name) - 2) {
-                            $name = substr($name, 0, -2);
-                        }
-                        $typeTree      = self::buildTypeTree($parameter->schema);
-                        $params[$name] = new Parameter($name, $typeTree);
-                        // TODO: encapsulate the parameters in the Request object
-                    }
-                }
-
-                if (isset($operation->requestBody, $operation->requestBody->content) && is_iterable(
-                        $operation->requestBody->content
-                    )) {
-                    foreach ($operation->requestBody->content as $key => $mediaType) {
-                        // TODO: build RequestBody object
-                        $name          = 'requestBody.' . $key;
-                        $typeTree      = self::buildTypeTree($mediaType->schema);
-                        $params[$name] = new Property($name, $typeTree);
-                    }
-                }
-
-                if (isset($operation->responses) && is_iterable($operation->responses)) {
-                    foreach ($operation->responses as $code => $response) {
-                        // TODO: build Response object
-                        if (isset($response->content) && is_iterable($response->content)) {
-                            foreach ($response->content as $contentType => $content) {
-                                // TODO: build ResponseContent object
-                                $name          = 'response.' . $code . '.' . $contentType;
-                                $typeTree      = self::buildTypeTree($content->schema);
-                                $params[$name] = new Property($name, $typeTree);
-                            }
-                        }
-                    }
-                }
-
-                $paths[$route][$method] = $params;
-            }
-        }
-
-        return $paths;
-    }
-
     public static function buildTypeTree(Schema $schema): TypeAbstract
     {
         // TODO: oneOf
@@ -117,6 +58,48 @@ class Util
         return $type;
     }
 
+    public static function printSpecification(Specification $specification): void
+    {
+        foreach ($specification->getPaths() as $route => $path) {
+            echo "\n{$route}";
+            foreach ($path->getOperations() as $method => $operation) {
+                $types = [];
+                foreach ($operation->getPathParameters() as $name => $parameter) {
+                    $types += self::flattenTypeTree($name, $parameter->getType());
+                }
+                foreach ($operation->getQueryParameters() as $name => $parameter) {
+                    $types += self::flattenTypeTree($name, $parameter->getType());
+                }
+                foreach ($operation->getResponses() as $statusCode => $response) {
+                    foreach ($response->getResponseBodies() as $contentType => $responseBody) {
+                        foreach ($responseBody->getProperties() as $name => $property) {
+                            $types += self::flattenTypeTree($name, $property->getType());
+                        }
+                    }
+                }
+                foreach ($operation->getRequestBodies() as $contentType => $requestBody) {
+                    foreach ($requestBody->getProperties() as $name => $property) {
+                        $types += self::flattenTypeTree($name, $property->getType());
+                    }
+                }
+                echo "\n  {$method}";
+                $longestNameLength = 0;
+                foreach ($types as $key => $value) {
+                    $len = strlen($key);
+                    if ($longestNameLength < $len) {
+                        $longestNameLength = $len;
+                    }
+                }
+                foreach ($types as $key => $value) {
+                    $padding = str_repeat(' ', $longestNameLength - strlen($key));
+                    echo "\n    ${key}${padding} = {$value}";
+                }
+            }
+            echo "\n";
+        }
+        echo "\n";
+    }
+
     private static function flattenTypeTree(string $name, TypeAbstract $type): array
     {
         $flat = [];
@@ -140,36 +123,6 @@ class Util
         }
 
         return $flat;
-    }
-
-    /**
-     * @param array<string, array<string, array<Parameter|Property>>> $paths
-     */
-    public static function printSpecification(array $paths): void
-    {
-        foreach ($paths as $route => $methods) {
-            echo "\n{$route}";
-            foreach ($methods as $method => $parameters) {
-                $types = [];
-                foreach ($parameters as $name => $parameter) {
-                    $types += self::flattenTypeTree($name, $parameter->getType());
-                }
-                echo "\n  {$method}";
-                $longestNameLength = 0;
-                foreach ($types as $key => $value) {
-                    $len = strlen($key);
-                    if ($longestNameLength < $len) {
-                        $longestNameLength = $len;
-                    }
-                }
-                foreach ($types as $key => $value) {
-                    $padding = str_repeat(' ', $longestNameLength - strlen($key));
-                    echo "\n    ${key}${padding} = {$value}";
-                }
-            }
-            echo "\n";
-        }
-        echo "\n";
     }
 
     /**

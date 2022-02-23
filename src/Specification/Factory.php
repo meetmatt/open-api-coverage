@@ -10,6 +10,7 @@ use cebe\openapi\Reader;
 use cebe\openapi\ReferenceContext;
 use cebe\openapi\spec\OpenApi;
 use Exception;
+use MeetMatt\OpenApiSpecCoverage\Util\Util;
 
 class Factory
 {
@@ -27,89 +28,76 @@ class Factory
 
         $spec = new Specification($specId);
 
-        // empty spec?
         if (!is_iterable($openApi->paths)) {
             return $spec;
         }
 
-        // each path is an API endpoint
-        foreach ($openApi->paths as $pathId => $path) {
-            $specPath = new Path($pathId);
+        foreach ($openApi->paths as $route => $path) {
+            $specPath = new Path($route);
             $spec->addPath($specPath);
 
-            // each operation on the path is an HTTP method of the endpoint
-            $operations = $path->getOperations();
-            foreach ($operations as $httpMethod => $operation) {
-                $specOperation = new Operation($httpMethod);
+            foreach ($path->getOperations() as $method => $operation) {
+                $specOperation = new Operation($method);
                 $specPath->addOperation($specOperation);
 
-                // request parameters
                 if (isset($operation->parameters) && is_iterable($operation->parameters)) {
-                    foreach ($operation->parameters as $parameter) {
-                        $type = $parameter->schema->type;
+                    $parameters = $operation->parameters;
+                    foreach ($parameters as $parameter) {
+                        $name = $parameter->name;
 
-                        $values = self::flattenParameterValues($parameter);
-
-                        $specParameter = new Parameter($parameter->name, $type);
-                        $specParameter->setValues($values);
-
-                        // query parameter (can be scalar, array and object)
-                        if ($parameter->in === 'query') {
-                            $specOperation->addQueryParameter($specParameter);
+                        // parameters with [] in the name will be treated as arrays
+                        if (strpos($name, '[]') === strlen($name) - 2) {
+                            $name = substr($name, 0, -2);
                         }
 
-                        // path parameter (can be only scalar)
+                        $typeTree = Util::buildTypeTree($parameter->schema);
+                        $param    = new Parameter($name, $typeTree);
+
+                        if ($parameter->in === 'query') {
+                            $specOperation->addQueryParameter($param);
+                        }
                         if ($parameter->in === 'path') {
-                            $specOperation->addPathParameter($specParameter);
+                            $specOperation->addPathParameter($param);
                         }
                     }
                 }
 
-                // request body object
-                if (isset($operation->requestBody) && is_iterable($operation->requestBody->content)) {
-                    foreach ($operation->requestBody->content as $contentType => $requestBody) {
-                        $specRequestBody = new RequestBody($contentType);
+                if (isset($operation->requestBody->content) && is_iterable($operation->requestBody->content)) {
+                    foreach ($operation->requestBody->content as $key => $mediaType) {
+                        $specRequestBody = new RequestBody($key);
                         $specOperation->addRequestBody($specRequestBody);
 
-                        if (!is_iterable($requestBody->schema)) {
-                            continue;
-                        }
-
-                        foreach ($requestBody->schema as $propertyName => $propertyDefinition) {
-                            $specPropertyValues = !empty($propertyDefinition->enum) ? $propertyDefinition->enum : [];
-                            $specProperty       = new Property($propertyName, $specPropertyValues);
-                            $specRequestBody->addProperty($specProperty);
-                        }
+                        $name     = 'requestBody.' . $key;
+                        $typeTree = Util::buildTypeTree($mediaType->schema);
+                        $prop     = new Property($name, $typeTree);
+                        $specRequestBody->addProperty($prop);
                     }
                 }
 
-                // responses
-                if (!is_iterable($operation->responses)) {
-                    continue;
-                }
-                foreach ($operation->responses as $httpStatusCode => $response) {
-                    $specResponse = new Response($httpStatusCode);
-                    $specOperation->addResponse($specResponse);
+                if (isset($operation->responses) && is_iterable($operation->responses)) {
+                    foreach ($operation->responses as $code => $response) {
+                        $specResponse = new Response($code);
+                        $specOperation->addResponse($specResponse);
 
-                    if (!is_iterable($response->content)) {
-                        continue;
-                    }
+                        if (isset($response->content) && is_iterable($response->content)) {
+                            foreach ($response->content as $contentType => $content) {
+                                $specResponseBody = new ResponseBody($contentType);
+                                $specResponse->addResponseBody($specResponseBody);
 
-                    foreach ($response->content as $contentType => $content) {
-                        $specResponseBody = new ResponseBody($contentType);
-                        $specResponse->addResponseBody($specResponseBody);
-
-                        foreach ($content->schema->properties as $propertyName => $propertyDefinition) {
-                            $specPropertyValues = !empty($propertyDefinition->enum) ? $propertyDefinition->enum : [];
-                            $specProperty       = new Property($propertyName, $specPropertyValues);
-                            $specResponseBody->addProperty($specProperty);
+                                foreach ($content->schema->properties as $propertyName => $propertyDefinition) {
+                                    $name     = 'response.' . $code . '.' . $contentType . '.' . $propertyName;
+                                    $typeTree = Util::buildTypeTree($propertyDefinition);
+                                    $prop     = new Property($name, $typeTree);
+                                    $specResponseBody->addProperty($prop);
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        // TODO: tags, tag coverage?
+        // TODO: tags?
 
         return $spec;
     }
@@ -160,7 +148,6 @@ class Factory
         $values = [];
 
 
-
         return $values;
     }
 
@@ -184,7 +171,12 @@ class Factory
             if (is_array($value)) {
                 if (self::isObject($value)) {
                     // assoc array
-                    $list += self::flatten($value, $delimiter, $list, $prefix . $key . ($isArray ? ']' : '') . $delimiter);
+                    $list += self::flatten(
+                        $value,
+                        $delimiter,
+                        $list,
+                        $prefix . $key . ($isArray ? ']' : '') . $delimiter
+                    );
                 } else {
                     // list
                     $list += self::flatten($value, $delimiter, $list, $prefix . $key . '[', true);

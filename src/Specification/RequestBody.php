@@ -32,7 +32,7 @@ class RequestBody
      */
     public function addProperty(Property $property)
     {
-        $this->properties[$property->getPath()] = $property;
+        $this->properties[$property->getName()] = $property;
     }
 
     /**
