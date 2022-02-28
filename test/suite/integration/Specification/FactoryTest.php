@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MeetMatt\OpenApiSpecCoverage\Test\Suite\Integration\Specification;
 
 use Codeception\Test\Unit;
