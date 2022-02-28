@@ -5,7 +5,7 @@ paths:
   log: test/output
   output: test/output
   data: test/data
-  support: test/data
+  support: test/support
 extensions:
   enabled:
     - Codeception\Extension\RunFailed

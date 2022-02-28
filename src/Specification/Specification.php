@@ -1,54 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Specification
 {
-    /** @var string */
-    private $id;
-
     /** @var array<string, Path> */
-    private $paths;
+    private array $paths;
 
-    /**
-     * @param string $id
-     */
-    public function __construct($id)
+    public function __construct()
     {
-        $this->id    = $id;
         $this->paths = [];
     }
 
-    /**
-     * @return string
-     */
-    public function getId()
+    public function addPath(Path $path): void
     {
-        return $this->id;
+        $this->paths[$path->getHttpPath()] = $path;
     }
 
-    /**
-     * @param Path $path
-     */
-    public function addPath(Path $path)
-    {
-        $this->paths[$path->getUrl()] = $path;
-    }
-
-    /**
-     * @param string $url
-     *
-     * @return Path|null
-     */
-    public function findPath($url)
-    {
-        return isset($this->paths[$url]) ? $this->paths[$url] : null;
-    }
-
-    /**
-     * @return array<string, Path>
-     */
-    public function getPaths()
+    public function getPaths(): array
     {
         return $this->paths;
     }

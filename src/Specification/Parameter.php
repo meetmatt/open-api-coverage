@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Parameter
 {
-    private string $name;
+    private string       $name;
 
     private TypeAbstract $type;
 

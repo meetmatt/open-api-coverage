@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MeetMatt\OpenApiSpecCoverage;
 
-class InputCriteria
+interface InputCriteria
 {
-
 }

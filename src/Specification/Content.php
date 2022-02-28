@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class RequestBody
+class Content
 {
     private string $contentType;
 
-    /** @var array<string, Property> */
+    /** @var array<string, Property */
     private $properties;
 
     public function __construct(string $contentType)

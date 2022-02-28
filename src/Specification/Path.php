@@ -1,54 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Path
 {
-    /** @var string */
-    private $url;
+    private string $httpPath;
 
     /** @var array<string, Operation> */
     private $operations;
 
-    /**
-     * @param string $url
-     */
-    public function __construct($url)
+    public function __construct(string $httpPath)
     {
-        $this->url        = $url;
+        $this->httpPath   = $httpPath;
         $this->operations = [];
     }
 
-    /**
-     * @return string
-     */
-    public function getUrl()
+    public function getHttpPath(): string
     {
-        return $this->url;
+        return $this->httpPath;
     }
 
-    /**
-     * @param Operation $operation
-     */
-    public function addOperation(Operation $operation)
+    public function addOperation(Operation $operation): void
     {
         $this->operations[$operation->getHttpMethod()] = $operation;
     }
 
     /**
-     * @param string $method
-     *
-     * @return Operation|null
-     */
-    public function findOperation($method)
-    {
-        return isset($this->operations[$method]) ? $this->operations[$method] : null;
-    }
-
-    /**
      * @return array<string, Operation>
      */
-    public function getOperations()
+    public function getOperations(): array
     {
         return $this->operations;
     }

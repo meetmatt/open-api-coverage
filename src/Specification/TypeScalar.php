@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class TypeScalar extends TypeAbstract

@@ -1,37 +1,47 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MeetMatt\OpenApiSpecCoverage;
 
-use Exception;
-use MeetMatt\OpenApiSpecCoverage\Specification\Factory;
+use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiFactory;
+use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiReader;
+use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiSchemaParser;
+use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiSpecificationParser;
 use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
 
 class Coverage
 {
-    /** @var Specification */
-    private $spec;
+    private Specification  $spec;
 
-    /** @var InputCriteria */
-    private $input;
+    private InputCriteria  $input;
 
-    /** @var OutputCriteria */
-    private $output;
+    private OutputCriteria $output;
 
-    /**
-     * @param string $specFile
-     *
-     * @throws Exception
-     */
-    public function __construct($specFile)
+    public function __construct(string $specFile)
     {
-        $this->spec = Factory::fromFile($specFile);
+        $factory = new OpenApiFactory(
+            new OpenApiReader(),
+            new OpenApiSpecificationParser(
+                new OpenApiSchemaParser()
+            )
+        );
+
+        $this->spec = $factory->fromFile($specFile);
     }
 
-    /**
-     * @return Specification
-     */
-    public function spec()
+    public function spec(): Specification
     {
         return $this->spec;
+    }
+
+    public function input(): InputCriteria
+    {
+        return $this->input;
+    }
+
+    public function output(): OutputCriteria
+    {
+        return $this->output;
     }
 }

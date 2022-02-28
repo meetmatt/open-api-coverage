@@ -1,55 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Response
 {
-    /** @var string */
-    private $httpStatusCode;
+    private string $httpStatusCode;
 
-    /** @var array<string, ResponseBody> */
-    private $responseBodies;
+    /** @var array<string, Content> */
+    private $contents;
 
-    /**
-     * @param string $httpStatusCode
-     */
-    public function __construct($httpStatusCode)
+    public function __construct(string $httpStatusCode)
     {
         $this->httpStatusCode = $httpStatusCode;
-        $this->responseBodies = [];
+        $this->contents       = [];
     }
 
-    /**
-     * @return string
-     */
-    public function getHttpStatusCode()
+    public function getHttpStatusCode(): string
     {
         return $this->httpStatusCode;
     }
 
-    /**
-     * @param ResponseBody $responseBody
-     */
-    public function addResponseBody(ResponseBody $responseBody)
+    public function addContent(Content $content): void
     {
-        $this->responseBodies[$responseBody->getContentType()] = $responseBody;
+        $this->contents[$content->getContentType()] = $content;
     }
 
     /**
-     * @param string $contentType
-     *
-     * @return ResponseBody|null
+     * @return array<string, Content>
      */
-    public function findResponseBody($contentType)
+    public function getContents(): array
     {
-        return isset($this->responseBodies[$contentType]) ? $this->responseBodies[$contentType] : null;
-    }
-
-    /**
-     * @return array<string, ResponseBody>
-     */
-    public function getResponseBodies()
-    {
-        return $this->responseBodies;
+        return $this->contents;
     }
 }
