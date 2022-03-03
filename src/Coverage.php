@@ -4,44 +4,64 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage;
 
-use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiFactory;
-use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiReader;
-use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiSchemaParser;
-use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiSpecificationParser;
-use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
+use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
+use MeetMatt\OpenApiSpecCoverage\TestRecorder\HttpCall;
+use MeetMatt\OpenApiSpecCoverage\TestRecorder\TestRecorder;
 
 class Coverage
 {
-    private Specification  $spec;
+    private SpecificationFactoryInterface $factory;
 
-    private InputCriteria  $input;
-
-    private OutputCriteria $output;
-
-    public function __construct(string $specFile)
+    public function __construct(SpecificationFactoryInterface $factory)
     {
-        $factory = new OpenApiFactory(
-            new OpenApiReader(),
-            new OpenApiSpecificationParser(
-                new OpenApiSchemaParser()
-            )
-        );
-
-        $this->spec = $factory->fromFile($specFile);
+        $this->factory = $factory;
     }
 
-    public function spec(): Specification
+    /**
+     * Generates expected Specification by parsing the specification file
+     * Generates actual Specification by parsing the test recorder logs
+     * Compares the specification to the http and assertion logs
+     * Fills out the input and output criteria
+     * Calculates the TCL
+     */
+    public function process(string $specFile, TestRecorder $testRecorder): void
     {
-        return $this->spec;
-    }
+        // 1. Parse specification.
+        $specification = $this->factory->fromFile($specFile);
 
-    public function input(): InputCriteria
-    {
-        return $this->input;
-    }
+        $operation     = null;
+        foreach ($testRecorder->getLogs() as $log) {
+            // 2. On each HTTP call (REST Module) find the path and operation in the spec, mark it as documented and passed.
+            if ($log instanceof HttpCall) {
+                $request = $log->getRequest();
+                $path    = $specification->findPath($request->getUri()->getPath());
+                if ($path === null) {
+                    // undocumented path
+                    // If there's no path, then log an undocumented path (plus operation, parameters (infer path parameters), query string parameters, request body contents).
+                    // TODO: decide where to store the undocumented specification elements
+                    continue;
+                }
 
-    public function output(): OutputCriteria
-    {
-        return $this->output;
+                $operation = $path->findOperation($request->getMethod());
+                if ($operation === null) {
+                    // undocumented operation - mark the path as called, but not covered, and with undocumented operation
+                    continue;
+                }
+            }
+
+            if ($operation === null) {
+                // assertion was called without a prior API call
+                continue;
+            }
+
+            // Request parameters - path parameters
+            $pathParameters = $operation->getPathParameters();
+            if (!empty($pathParameters)) {
+                // go through each path parameter and mark as covered
+            }
+
+            // Dig deeper to the request parameters: query parameters.
+
+        }
     }
 }

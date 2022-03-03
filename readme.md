@@ -53,15 +53,15 @@ Response coverage:
 
 ## Test Coverage Levels (TCL)
  
-| TCL | Input criteria  | Output criteria          |  
-| --- | --------------- | ------------------------ |  
-|  0  |                 |                          |  
-|  1  | Paths           |                          |  
-|  2  | Operations      |                          |  
-|  3  | Content-type    | Content-type             |  
-|  4  | Parameters      | Status code class        |  
-|  5  |                 | Status codes             |  
-|  6  |                 | Response body properties |  
+| TCL | Input criteria  | Output criteria          |
+| --- | --------------- | ------------------------ |
+|  0  |                 |                          |
+|  1  | Paths           |                          |
+|  2  | Operations      |                          |
+|  3  | Content-type    | Content-type             |
+|  4  | Parameters      | Status code class        |
+|  5  |                 | Status codes             |
+|  6  |                 | Response body properties |
 |  7  | Operation flows |                          |
 
 ## Object Model
@@ -103,6 +103,16 @@ Specification:
             Path: string
             Values: array
 ```
+
+## How the coverage works
+
+1. Parse specification.
+2. On each HTTP call (REST Module) find the path and operation in the spec, mark it as documented and passed.
+3. Dig deeper to the request parameters: infer path parameters from the URI path, by converting the path definition to regex according to the path parameter, mark the parameter as passed.
+4. If there's a path, but no operation documented - then mark the path as called, and log an undocumented operation.
+5. If there's no path, then log an undocumented path (plus operation, parameters (infer path parameters), query string parameters, request body contents).
+6. Dig deeper to the request parameters: query parameters.
+
 
 ## References
 

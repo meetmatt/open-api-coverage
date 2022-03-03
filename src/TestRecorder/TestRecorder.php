@@ -4,33 +4,39 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\TestRecorder;
 
-interface TestRecorder
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+class TestRecorder
 {
+    /** @var HttpCall[]|ContentTypeAssertion[]|StatusCodeAssertion[]|ResponseContentAssertion[] */
+    private array $log;
+
+    public function recordHttpCall(ServerRequestInterface $request, ResponseInterface $response): void
+    {
+        $this->log[] = new HttpCall($request, $response);
+    }
+
+    public function contentTypeAsserted(string $contentType): void
+    {
+        $this->log[] = new ContentTypeAssertion($contentType);
+    }
+
+    public function statusCodeAsserted(string $statusCode): void
+    {
+        $this->log[] = new StatusCodeAssertion($statusCode);
+    }
+
+    public function responseContentAsserted($content): void
+    {
+        $this->log[] = new ResponseContentAssertion($content);
+    }
+
     /**
-     * HTTP call made
-     *   -> input criteria - path called
-     *   -> input criteria - operation called
-     *   -> input criteria - content type
-     *   -> input criteria - passed path parameters
-     *   -> input criteria - passed query parameters
-     *   -> input criteria - passed request body
-     *   -> input criteria - passed content type (implicitly with json_encode also counts?)
-     *
-     * @param Request  $request
-     * @param Response $response
+     * @return ContentTypeAssertion[]|HttpCall[]|ResponseContentAssertion[]|StatusCodeAssertion[]
      */
-    public function httpCall(Request $request, Response $response): void;
-
-    // content type asserted
-    //   -> output criteria - content type (implicitly with json_decode also counts)
-    public function contentTypeAsserted(string $contentType): void;
-
-    // status code asserted
-    //   -> output criteria - status code class
-    //   -> output criteria - status code
-    public function statusCodeAsserted(string $statusCode): void;
-
-    // response content asserted
-    //   -> output criteria - response content properties
-    public function responseContentAsserted($content): void;
+    public function getLogs(): array
+    {
+        return $this->log;
+    }
 }

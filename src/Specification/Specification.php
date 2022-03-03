@@ -16,11 +16,16 @@ class Specification
 
     public function addPath(Path $path): void
     {
-        $this->paths[$path->getHttpPath()] = $path;
+        $this->paths[$path->getUriPath()] = $path;
     }
 
     public function getPaths(): array
     {
         return $this->paths;
+    }
+
+    public function findPath(string $uriPath): ?Path
+    {
+        return $this->paths[$uriPath] ?? null;
     }
 }

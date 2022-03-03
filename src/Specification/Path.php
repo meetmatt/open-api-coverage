@@ -6,20 +6,20 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Path
 {
-    private string $httpPath;
+    private string $uriPath;
 
     /** @var array<string, Operation> */
     private $operations;
 
-    public function __construct(string $httpPath)
+    public function __construct(string $uriPath)
     {
-        $this->httpPath   = $httpPath;
+        $this->uriPath    = $uriPath;
         $this->operations = [];
     }
 
-    public function getHttpPath(): string
+    public function getUriPath(): string
     {
-        return $this->httpPath;
+        return $this->uriPath;
     }
 
     public function addOperation(Operation $operation): void
@@ -33,5 +33,10 @@ class Path
     public function getOperations(): array
     {
         return $this->operations;
+    }
+
+    public function findOperation(string $httpMethod): ?Operation
+    {
+        return $this->operations[$httpMethod] ?? null;
     }
 }

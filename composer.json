@@ -1,30 +1,36 @@
 {
     "name": "meetmatt/open-api-coverage",
-    "description":"OpenAPI specification coverage",
-    "keywords":["openapi", "coverage"],
-    "type":"library",
-    "license":"MIT",
+    "description": "OpenAPI specification coverage",
+    "keywords": [
+        "openapi",
+        "coverage"
+    ],
+    "type": "library",
+    "license": "MIT",
     "minimum-stability": "stable",
-    "authors":[
+    "authors": [
         {
-            "name":"Iurii Golikov",
+            "name": "Iurii Golikov",
             "email": "iurii.golikov@gmail.com"
         }
     ],
     "require": {
         "php": "^7.4",
         "ext-json": "*",
-        "cebe/php-openapi": "^1.5"
+        "cebe/php-openapi": "^1.5",
+        "psr/http-message": "^1.0"
     },
     "require-dev": {
-        "codeception/codeception": "^4.1"
+        "codeception/codeception": "^4.1",
+        "codeception/module-asserts": "^2.0",
+        "guzzlehttp/psr7": "^2.1"
     },
-    "autoload":{
+    "autoload": {
         "psr-4": {
             "MeetMatt\\OpenApiSpecCoverage\\": "src/"
         }
     },
-    "autoload-dev":{
+    "autoload-dev": {
         "psr-4": {
             "MeetMatt\\OpenApiSpecCoverage\\Test\\Suite\\Integration\\": "test/suite/integration",
             "MeetMatt\\OpenApiSpecCoverage\\Test\\Support\\": "test/support"
