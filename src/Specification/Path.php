@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class Path
+class Path extends CoverageElement
 {
     private string $uriPath;
 
-    /** @var array<string, Operation> */
-    private $operations;
+    /** @var array<Operation> */
+    private array $operations;
 
     public function __construct(string $uriPath)
     {
@@ -22,13 +22,15 @@ class Path
         return $this->uriPath;
     }
 
-    public function addOperation(Operation $operation): void
+    public function addOperation(Operation $operation): self
     {
-        $this->operations[$operation->getHttpMethod()] = $operation;
+        $this->operations[] = $operation;
+
+        return $this;
     }
 
     /**
-     * @return array<string, Operation>
+     * @return array<Operation>
      */
     public function getOperations(): array
     {
@@ -37,6 +39,12 @@ class Path
 
     public function findOperation(string $httpMethod): ?Operation
     {
-        return $this->operations[$httpMethod] ?? null;
+        foreach ($this->operations as $operation) {
+            if ($operation->getHttpMethod() === $httpMethod) {
+                return $operation;
+            }
+        }
+
+        return null;
     }
 }

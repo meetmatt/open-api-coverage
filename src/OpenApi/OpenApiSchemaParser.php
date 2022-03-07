@@ -24,8 +24,8 @@ class OpenApiSchemaParser
             foreach ($schema->allOf as $scheme) {
                 $object = $this->parse($scheme);
                 if ($object instanceof TypeObject) {
-                    foreach ($object->getProperties() as $name => $property) {
-                        $properties[$name] = $property;
+                    foreach ($object->getProperties() as $property) {
+                        $properties[] = $property;
                     }
                 }
                 // elseif ...
@@ -43,7 +43,7 @@ class OpenApiSchemaParser
             case 'object':
                 $properties = [];
                 foreach ($schema->properties as $name => $property) {
-                    $properties[$name] = new Property($name, $this->parse($property));
+                    $properties[] = new Property($name, $this->parse($property));
                 }
                 $type = new TypeObject($properties);
                 break;

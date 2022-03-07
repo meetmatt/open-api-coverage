@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class Parameter
+class Parameter extends CoverageElement
 {
     private string       $name;
 

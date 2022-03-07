@@ -8,29 +8,29 @@ class Printer
 {
     public function print(Specification $specification): void
     {
-        foreach ($specification->getPaths() as $route => $path) {
-            echo "\n$route";
-            foreach ($path->getOperations() as $method => $operation) {
+        foreach ($specification->getPaths() as $path) {
+            echo "\n{$path->getUriPath()}";
+            foreach ($path->getOperations() as $operation) {
                 $types = [];
-                foreach ($operation->getPathParameters() as $name => $parameter) {
-                    $types += self::flattenTypeTree($name, $parameter->getType());
+                foreach ($operation->getPathParameters() as $parameter) {
+                    $types += self::flattenTypeTree($parameter->getName(), $parameter->getType());
                 }
-                foreach ($operation->getQueryParameters() as $name => $parameter) {
-                    $types += self::flattenTypeTree($name, $parameter->getType());
+                foreach ($operation->getQueryParameters() as $parameter) {
+                    $types += self::flattenTypeTree($parameter->getName(), $parameter->getType());
                 }
-                foreach ($operation->getResponses() as $statusCode => $response) {
-                    foreach ($response->getContents() as $contentType => $responseBody) {
-                        foreach ($responseBody->getProperties() as $name => $property) {
-                            $types += self::flattenTypeTree($name, $property->getType());
+                foreach ($operation->getResponses() as $response) {
+                    foreach ($response->getContents() as $responseBody) {
+                        foreach ($responseBody->getProperties() as $property) {
+                            $types += self::flattenTypeTree($property->getName(), $property->getType());
                         }
                     }
                 }
-                foreach ($operation->getRequestBodies() as $contentType => $requestBody) {
-                    foreach ($requestBody->getProperties() as $name => $property) {
-                        $types += self::flattenTypeTree($name, $property->getType());
+                foreach ($operation->getRequestBodies() as $requestBody) {
+                    foreach ($requestBody->getProperties() as $property) {
+                        $types += self::flattenTypeTree($property->getName(), $property->getType());
                     }
                 }
-                echo "\n  $method";
+                echo "\n  {$operation->getHttpMethod()}";
                 $longestNameLength = 0;
                 foreach ($types as $key => $value) {
                     $len = strlen($key);
@@ -62,9 +62,9 @@ class Printer
                 $flat[$key] = $value;
             }
         } elseif ($type instanceof TypeObject) {
-            foreach ($type->getProperties() as $propertyType) {
-                $propertyPrefix    = $name . '.' . $propertyType->getName();
-                $flattenedProperty = self::flattenTypeTree($propertyPrefix, $propertyType->getType());
+            foreach ($type->getProperties() as $property) {
+                $propertyPrefix    = $name . '.' . $property->getName();
+                $flattenedProperty = self::flattenTypeTree($propertyPrefix, $property->getType());
                 foreach ($flattenedProperty as $key => $value) {
                     $flat[$key] = $value;
                 }

@@ -8,8 +8,8 @@ class Content
 {
     private string $contentType;
 
-    /** @var array<string, Property */
-    private $properties;
+    /** @var array<Property> */
+    private array $properties;
 
     public function __construct(string $contentType)
     {
@@ -24,11 +24,11 @@ class Content
 
     public function addProperty(Property $property): void
     {
-        $this->properties[$property->getName()] = $property;
+        $this->properties[] = $property;
     }
 
     /**
-     * @return array<string, Property>
+     * @return array<Property>
      */
     public function getProperties(): array
     {

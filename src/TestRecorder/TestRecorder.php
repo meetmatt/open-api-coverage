@@ -9,7 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class TestRecorder
 {
-    /** @var HttpCall[]|ContentTypeAssertion[]|StatusCodeAssertion[]|ResponseContentAssertion[] */
+    /** @var HttpCall[]|ResponseContentTypeAssertion[]|ResponseStatusCodeAssertion[]|ResponseContentAssertion[] */
     private array $log;
 
     public function recordHttpCall(ServerRequestInterface $request, ResponseInterface $response): void
@@ -19,12 +19,12 @@ class TestRecorder
 
     public function contentTypeAsserted(string $contentType): void
     {
-        $this->log[] = new ContentTypeAssertion($contentType);
+        $this->log[] = new ResponseContentTypeAssertion($contentType);
     }
 
     public function statusCodeAsserted(string $statusCode): void
     {
-        $this->log[] = new StatusCodeAssertion($statusCode);
+        $this->log[] = new ResponseStatusCodeAssertion($statusCode);
     }
 
     public function responseContentAsserted($content): void
@@ -33,7 +33,7 @@ class TestRecorder
     }
 
     /**
-     * @return ContentTypeAssertion[]|HttpCall[]|ResponseContentAssertion[]|StatusCodeAssertion[]
+     * @return ResponseContentTypeAssertion[]|HttpCall[]|ResponseContentAssertion[]|ResponseStatusCodeAssertion[]
      */
     public function getLogs(): array
     {

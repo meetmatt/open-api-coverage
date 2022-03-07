@@ -6,7 +6,7 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Specification
 {
-    /** @var array<string, Path> */
+    /** @var array<Path> */
     private array $paths;
 
     public function __construct()
@@ -16,7 +16,7 @@ class Specification
 
     public function addPath(Path $path): void
     {
-        $this->paths[$path->getUriPath()] = $path;
+        $this->paths[] = $path;
     }
 
     public function getPaths(): array
@@ -26,6 +26,14 @@ class Specification
 
     public function findPath(string $uriPath): ?Path
     {
-        return $this->paths[$uriPath] ?? null;
+        foreach ($this->paths as $path) {
+            // TODO: figure out how to match dynamic path parameters
+            // e.g. /v1/users/31337 should match /v1/users/{id}, but only if there aren't any duplicates
+            if ($path->getUriPath() === $uriPath) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 }

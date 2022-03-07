@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class Property
+class Property extends CoverageElement
 {
     private string $name;
 

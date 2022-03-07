@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\TestRecorder;
 
-class ContentTypeAssertion
+class ResponseContentTypeAssertion
 {
     private string $contentType;
 

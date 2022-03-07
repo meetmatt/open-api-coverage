@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-abstract class TypeAbstract extends CoverageElement
+abstract class CoverageElement
 {
+    use CoverageElementTrait;
 }

@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class Operation
+class Operation extends CoverageElement
 {
     private string $httpMethod;
 
-    /** @var array<string, Parameter> */
-    private $pathParameters;
+    /** @var array<Parameter> */
+    private array $pathParameters;
 
-    /** @var array<string, Parameter> */
-    private $queryParameters;
+    /** @var array<Parameter> */
+    private array $queryParameters;
 
-    /** @var array<string, RequestBody> */
-    private $requestBodies;
+    /** @var array<RequestBody> */
+    private array $requestBodies;
 
-    /** @var array<string, Response> */
-    private $responses;
+    /** @var array<Response> */
+    private array $responses;
 
     public function __construct(string $httpMethod)
     {
@@ -35,7 +35,7 @@ class Operation
     }
 
     /**
-     * @return array<string, Parameter>
+     * @return array<Parameter>
      */
     public function getPathParameters(): array
     {
@@ -43,7 +43,7 @@ class Operation
     }
 
     /**
-     * @return array<string, Parameter>
+     * @return array<Parameter>
      */
     public function getQueryParameters(): array
     {
@@ -51,7 +51,7 @@ class Operation
     }
 
     /**
-     * @return array<string, RequestBody>
+     * @return array<RequestBody>
      */
     public function getRequestBodies(): array
     {
@@ -59,30 +59,53 @@ class Operation
     }
 
     /**
-     * @return array<string, Response>
+     * @return array<Response>
      */
     public function getResponses(): array
     {
         return $this->responses;
     }
 
-    public function addPathParameter(Parameter $parameter): void
+    public function addPathParameter(Parameter $parameter): self
     {
-        $this->pathParameters[$parameter->getName()] = $parameter;
+        $this->pathParameters[] = $parameter;
+
+        return $this;
     }
 
-    public function addQueryParameter(Parameter $parameter): void
+    public function addQueryParameter(Parameter $parameter): self
     {
-        $this->queryParameters[$parameter->getName()] = $parameter;
+        $this->queryParameters[] = $parameter;
+
+        return $this;
     }
 
-    public function addRequestBody(RequestBody $requestBody): void
+    public function addRequestBody(RequestBody $requestBody): self
     {
-        $this->requestBodies[$requestBody->getContentType()] = $requestBody;
+        $this->requestBodies[] = $requestBody;
+
+        return $this;
     }
 
-    public function addResponse(Response $response): void
+    public function addResponse(Response $response): self
     {
-        $this->responses[$response->getHttpStatusCode()] = $response;
+        $this->responses[] = $response;
+
+        return $this;
+    }
+
+    public function findQueryParameter(string $queryParameterName, TypeAbstract $queryParameterType): ?Parameter
+    {
+        foreach ($this->queryParameters as $queryParameter) {
+            if (
+                $queryParameter->getName() === $queryParameterName
+                &&
+                $queryParameter->getType() === $queryParameterType
+            ) {
+                return $queryParameter;
+            }
+        }
+
+        return null;
     }
 }

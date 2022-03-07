@@ -6,20 +6,23 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class TypeEnum extends TypeAbstract
 {
-    private TypeScalar $type;
+    private TypeScalar $scalarType;
 
     /** @var string[]|int[]|float[] */
     private array $enum;
 
-    public function __construct(TypeScalar $type, array $enum)
+    /** @var string[]|int[]|float[] */
+    private array $executedEnum;
+
+    public function __construct(TypeScalar $scalarType, array $enum)
     {
-        $this->type = $type;
-        $this->enum = $enum;
+        $this->scalarType = $scalarType;
+        $this->enum       = $enum;
     }
 
     public function getScalarType(): TypeScalar
     {
-        return $this->type;
+        return $this->scalarType;
     }
 
     /**
@@ -28,5 +31,21 @@ class TypeEnum extends TypeAbstract
     public function getEnum(): array
     {
         return $this->enum;
+    }
+
+    /**
+     * @param float|int|string $value
+     */
+    public function setEnumValueAsExecuted($value): void
+    {
+        $this->executedEnum[] = $value;
+    }
+
+    /**
+     * @return float[]|int[]|string[]
+     */
+    public function getExecutedEnum(): array
+    {
+        return $this->executedEnum;
     }
 }

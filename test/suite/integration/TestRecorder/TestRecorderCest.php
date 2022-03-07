@@ -9,10 +9,10 @@ use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\Utils;
 use MeetMatt\OpenApiSpecCoverage\Test\Support\IntegrationTester;
-use MeetMatt\OpenApiSpecCoverage\TestRecorder\ContentTypeAssertion;
+use MeetMatt\OpenApiSpecCoverage\TestRecorder\ResponseContentTypeAssertion;
 use MeetMatt\OpenApiSpecCoverage\TestRecorder\HttpCall;
 use MeetMatt\OpenApiSpecCoverage\TestRecorder\ResponseContentAssertion;
-use MeetMatt\OpenApiSpecCoverage\TestRecorder\StatusCodeAssertion;
+use MeetMatt\OpenApiSpecCoverage\TestRecorder\ResponseStatusCodeAssertion;
 use MeetMatt\OpenApiSpecCoverage\TestRecorder\TestRecorder;
 
 class TestRecorderCest
@@ -41,8 +41,8 @@ class TestRecorderCest
 
         $logs = [
             new HttpCall($request, $response),
-            new StatusCodeAssertion('200'),
-            new ContentTypeAssertion('application/json'),
+            new ResponseStatusCodeAssertion('200'),
+            new ResponseContentTypeAssertion('application/json'),
             new ResponseContentAssertion(['pet' => 'test']),
         ];
 

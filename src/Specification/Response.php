@@ -8,8 +8,8 @@ class Response
 {
     private string $httpStatusCode;
 
-    /** @var array<string, Content> */
-    private $contents;
+    /** @var array<Content> */
+    private array $contents;
 
     public function __construct(string $httpStatusCode)
     {
@@ -24,11 +24,11 @@ class Response
 
     public function addContent(Content $content): void
     {
-        $this->contents[$content->getContentType()] = $content;
+        $this->contents[] = $content;
     }
 
     /**
-     * @return array<string, Content>
+     * @return array<Content>
      */
     public function getContents(): array
     {

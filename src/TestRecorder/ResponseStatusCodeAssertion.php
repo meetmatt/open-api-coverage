@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\TestRecorder;
 
-class StatusCodeAssertion
+class ResponseStatusCodeAssertion
 {
     private string $statusCode;
 

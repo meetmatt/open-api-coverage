@@ -6,16 +6,28 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class TypeObject extends TypeAbstract
 {
-    /** @var array<string, Property> */
+    /** @var array<Property> */
     private array $properties;
 
-    public function __construct(array $properties)
+    /**
+     * @param array<Property> $properties
+     */
+    public function __construct(array $properties = [])
     {
-        $this->properties = $properties;
+        $this->properties = [];
+
+        foreach ($properties as $property) {
+            $this->addProperty($property);
+        }
+    }
+
+    public function addProperty(Property $property): void
+    {
+        $this->properties[] = $property;
     }
 
     /**
-     * @return array<string, Property>
+     * @return array<Property>
      */
     public function getProperties(): array
     {
