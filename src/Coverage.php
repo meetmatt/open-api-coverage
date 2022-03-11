@@ -248,6 +248,8 @@ class Coverage
 
     private function isObject(array $array): bool
     {
+        // Can be replaced with !array_is_list($array) in PHP 8.1
+
         foreach ($array as $key => $value) {
             if (!$this->isIntegerish($key)) {
                 // if there's at least one non-integer key, then it's an assoc object

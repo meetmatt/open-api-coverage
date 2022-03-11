@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class TypeScalar extends TypeAbstract
+use RuntimeException;
+
+class TypeScalar extends TypeAbstract implements RegexSerializable
 {
     private string $type;
 
@@ -32,5 +34,24 @@ class TypeScalar extends TypeAbstract
     public function getValue()
     {
         return $this->value;
+    }
+
+    public function asRegex(): string
+    {
+        switch ($this->type) {
+            case 'string':
+                // forward slashes and dots don't work correctly in path parameters
+                return '[^./]+';
+
+            case 'number':
+            case 'integer':
+                return '\d+';
+
+            case 'boolean':
+            case 'array':
+            case 'object':
+            default:
+                throw new RuntimeException(sprintf('Unsupported parameter type: %s', $this->type));
+        }
     }
 }

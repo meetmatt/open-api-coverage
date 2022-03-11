@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class TypeEnum extends TypeAbstract
+class TypeEnum extends TypeAbstract implements RegexSerializable
 {
     private TypeScalar $scalarType;
 
@@ -47,5 +47,10 @@ class TypeEnum extends TypeAbstract
     public function getExecutedEnum(): array
     {
         return $this->executedEnum;
+    }
+
+    public function asRegex(): string
+    {
+        return sprintf('(%s)', implode('|', $this->enum));
     }
 }

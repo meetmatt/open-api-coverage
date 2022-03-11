@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
+use RuntimeException;
+
 class Path extends CoverageElement
 {
     private string $uriPath;
@@ -20,6 +22,11 @@ class Path extends CoverageElement
     public function getUriPath(): string
     {
         return $this->uriPath;
+    }
+
+    public function matches(string $uriPath): bool
+    {
+        return preg_match($this->getUriPathAsRegex(), $uriPath) === 1;
     }
 
     public function addOperation(Operation $operation): self
@@ -46,5 +53,33 @@ class Path extends CoverageElement
         }
 
         return null;
+    }
+
+    private function getUriPathAsRegex(): string
+    {
+        $pathUris = [];
+        foreach ($this->getOperations() as $operation) {
+            $uriPath        = $this->getUriPath();
+            $pathParameters = $operation->getPathParameters();
+            foreach ($pathParameters as $pathParameter) {
+                $type = $pathParameter->getType();
+                if ($type instanceof RegexSerializable) {
+                    $uriPath = str_replace(
+                        sprintf('/{%s}', $pathParameter->getName()),
+                        sprintf('/%s', $type->asRegex()),
+                        $uriPath
+                    );
+                }
+            }
+
+            $pathUris[] = $uriPath;
+        }
+
+        $pathUris = array_unique($pathUris);
+        if (count($pathUris) > 1) {
+            throw new RuntimeException('Path has operations with different path parameters: ' . $this->getUriPath());
+        }
+
+        return "#^$pathUris[0]$#";
     }
 }

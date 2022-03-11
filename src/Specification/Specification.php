@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
+use RuntimeException;
+
 class Specification
 {
     /** @var array<Path> */
@@ -14,9 +16,11 @@ class Specification
         $this->paths = [];
     }
 
-    public function addPath(Path $path): void
+    public function addPath(Path $path): self
     {
         $this->paths[] = $path;
+
+        return $this;
     }
 
     public function getPaths(): array
@@ -26,14 +30,21 @@ class Specification
 
     public function findPath(string $uriPath): ?Path
     {
+        $matches = [];
         foreach ($this->paths as $path) {
-            // TODO: figure out how to match dynamic path parameters
-            // e.g. /v1/users/31337 should match /v1/users/{id}, but only if there aren't any duplicates
-            if ($path->getUriPath() === $uriPath) {
-                return $path;
+            if ($path->matches($uriPath)) {
+                $matches[] = $path;
             }
         }
 
-        return null;
+        if (empty($matches)) {
+            return null;
+        }
+
+        if (count($matches) > 1) {
+            throw new RuntimeException('URI matched more than one path: ' . implode(', ', array_keys($matches)));
+        }
+
+        return array_pop($matches);
     }
 }

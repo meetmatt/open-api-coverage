@@ -33,6 +33,7 @@
     "autoload-dev": {
         "psr-4": {
             "MeetMatt\\OpenApiSpecCoverage\\Test\\Suite\\Integration\\": "test/suite/integration",
+            "MeetMatt\\OpenApiSpecCoverage\\Test\\Suite\\Unit\\": "test/suite/unit",
             "MeetMatt\\OpenApiSpecCoverage\\Test\\Support\\": "test/support"
         }
     },
