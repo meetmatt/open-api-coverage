@@ -8,13 +8,12 @@ class Response
 {
     private string $httpStatusCode;
 
-    /** @var array<Content> */
-    private array $contents;
+    /** @var Content[] */
+    private array $contents = [];
 
     public function __construct(string $httpStatusCode)
     {
         $this->httpStatusCode = $httpStatusCode;
-        $this->contents       = [];
     }
 
     public function getHttpStatusCode(): string
@@ -28,7 +27,7 @@ class Response
     }
 
     /**
-     * @return array<Content>
+     * @return Content[]
      */
     public function getContents(): array
     {

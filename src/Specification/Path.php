@@ -4,19 +4,33 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-use RuntimeException;
-
 class Path extends CoverageElement
 {
     private string $uriPath;
 
-    /** @var array<Operation> */
-    private array $operations;
+    /** @var Operation[] */
+    private array $operations = [];
 
     public function __construct(string $uriPath)
     {
-        $this->uriPath    = $uriPath;
-        $this->operations = [];
+        $this->uriPath = $uriPath;
+    }
+
+    public function addOperation(string $httpMethod): Operation
+    {
+        $operation = new Operation($httpMethod);
+
+        $this->operations[] = $operation;
+
+        return $operation;
+    }
+
+    /**
+     * @throws SpecificationException
+     */
+    public function matches(string $uriPath): bool
+    {
+        return preg_match($this->getUriPathAsRegex(), $uriPath) === 1;
     }
 
     public function getUriPath(): string
@@ -24,20 +38,8 @@ class Path extends CoverageElement
         return $this->uriPath;
     }
 
-    public function matches(string $uriPath): bool
-    {
-        return preg_match($this->getUriPathAsRegex(), $uriPath) === 1;
-    }
-
-    public function addOperation(Operation $operation): self
-    {
-        $this->operations[] = $operation;
-
-        return $this;
-    }
-
     /**
-     * @return array<Operation>
+     * @return Operation[]
      */
     public function getOperations(): array
     {
@@ -55,6 +57,9 @@ class Path extends CoverageElement
         return null;
     }
 
+    /**
+     * @throws SpecificationException
+     */
     private function getUriPathAsRegex(): string
     {
         $pathUris = [];
@@ -77,7 +82,7 @@ class Path extends CoverageElement
 
         $pathUris = array_unique($pathUris);
         if (count($pathUris) > 1) {
-            throw new RuntimeException('Path has operations with different path parameters: ' . $this->getUriPath());
+            throw SpecificationException::pathHasAmbiguousPathParameters($this->getUriPath());
         }
 
         return "#^$pathUris[0]$#";

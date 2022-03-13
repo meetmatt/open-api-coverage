@@ -6,32 +6,17 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Content
 {
-    private string $contentType;
+    use PropertyTrait;
 
-    /** @var array<Property> */
-    private array $properties;
+    private string $contentType;
 
     public function __construct(string $contentType)
     {
         $this->contentType = $contentType;
-        $this->properties  = [];
     }
 
     public function getContentType(): string
     {
         return $this->contentType;
-    }
-
-    public function addProperty(Property $property): void
-    {
-        $this->properties[] = $property;
-    }
-
-    /**
-     * @return array<Property>
-     */
-    public function getProperties(): array
-    {
-        return $this->properties;
     }
 }

@@ -23,38 +23,7 @@ class OpenApiSpecificationParser
         $this->parser = $parser;
     }
 
-    /**
-     * @param OpenApi $openApi
-     *
-     * @return Path[]
-     */
-    public function parsePaths(OpenApi $openApi): array
-    {
-        $paths = [];
-
-        foreach ($openApi->paths as $httpPath => $openApiPath) {
-            $path = new Path($httpPath);
-            foreach ($openApiPath->getOperations() as $method => $operation) {
-                $path->addOperation($this->parseOperation($method, $operation));
-            }
-            $paths[] = $path;
-        }
-
-        return $paths;
-    }
-
-    private function parseOperation(string $httpMethod, OpenApiOperation $openApiOperation): Operation
-    {
-        $operation = new Operation($httpMethod);
-
-        $this->parseParameters($operation, $openApiOperation);
-        $this->parseRequests($operation, $openApiOperation);
-        $this->parseResponses($operation, $openApiOperation);
-
-        return $operation;
-    }
-
-    private function parseParameters(Operation $operation, OpenApiOperation $openApiOperation): void
+    public function parseParameters(Operation $operation, OpenApiOperation $openApiOperation): void
     {
         if (!isset($openApiOperation->parameters) || !is_iterable($openApiOperation->parameters)) {
             return;
@@ -73,7 +42,7 @@ class OpenApiSpecificationParser
         }
     }
 
-    private function parseRequests(Operation $operation, OpenApiOperation $openApiOperation): void
+    public function parseRequests(Operation $operation, OpenApiOperation $openApiOperation): void
     {
         if (!isset($openApiOperation->requestBody->content) || !is_iterable($openApiOperation->requestBody->content)) {
             return;
@@ -84,12 +53,11 @@ class OpenApiSpecificationParser
             $operation->addRequestBody($specRequestBody);
 
             $name = 'requestBody.' . $contentType;
-            $prop = new Property($name, $this->parser->parse($mediaType->schema));
-            $specRequestBody->addProperty($prop);
+            $specRequestBody->addProperty($name, $this->parser->parse($mediaType->schema));
         }
     }
 
-    private function parseResponses(Operation $operation, OpenApiOperation $openApiOperation): void
+    public function parseResponses(Operation $operation, OpenApiOperation $openApiOperation): void
     {
         if (!isset($openApiOperation->responses) || !is_iterable($openApiOperation->responses)) {
             return;
@@ -113,15 +81,18 @@ class OpenApiSpecificationParser
             $content = new Content($contentType);
             $response->addContent($content);
 
-            if (!isset($openApiResponseContent->schema->properties) || !is_iterable($openApiResponseContent->schema->properties)) {
+            if (
+                !isset($openApiResponseContent->schema->properties)
+                ||
+                !is_iterable($openApiResponseContent->schema->properties)
+            ) {
                 continue;
             }
 
             foreach ($openApiResponseContent->schema->properties as $propertyName => $propertySchema) {
                 $name = 'response.' . $httpStatusCode . '.' . $contentType . '.' . $propertyName;
                 $type = $this->parser->parse($propertySchema);
-                $prop = new Property($name, $type);
-                $content->addProperty($prop);
+                $content->addProperty($name, $type);
             }
         }
     }

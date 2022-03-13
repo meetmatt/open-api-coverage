@@ -12,39 +12,18 @@ trait CoverageElementTrait
 
     protected bool $isAsserted   = false;
 
-    public function isDocumented(): bool
+    public function undocumented(): void
     {
-        return $this->isDocumented;
+        $this->isDocumented = false;
     }
 
-    public function setIsDocumented(bool $isDocumented): self
+    public function executed(): void
     {
-        $this->isDocumented = $isDocumented;
-
-        return $this;
+        $this->isExecuted = true;
     }
 
-    public function isExecuted(): bool
+    public function markAsAsserted(): void
     {
-        return $this->isExecuted;
-    }
-
-    public function setIsExecuted(bool $isExecuted): self
-    {
-        $this->isExecuted = $isExecuted;
-
-        return $this;
-    }
-
-    public function isAsserted(): bool
-    {
-        return $this->isAsserted;
-    }
-
-    public function setIsAsserted(bool $isAsserted): self
-    {
-        $this->isAsserted = $isAsserted;
-
-        return $this;
+        $this->isAsserted = true;
     }
 }

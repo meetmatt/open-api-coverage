@@ -19,15 +19,15 @@ class PathTest extends TestCase
     {
         $this->path = new Path('/v1/users/{id}/name/{name}/{type}');
 
-        $operation  = $this->createMock(Operation::class);
-        $operation->method('getHttpMethod')->willReturn('get');
+        $operation = $this->path->addOperation('get');
 
-        $pathParameters = [
-            $idParameter = $this->createMock(Parameter::class),
-            $nameParameter = $this->createMock(Parameter::class),
-            $typeParameter = $this->createMock(Parameter::class),
-        ];
-        $operation->method('getPathParameters')->willReturn($pathParameters);
+        $idParameter = $this->createMock(Parameter::class);
+        $nameParameter = $this->createMock(Parameter::class);
+        $typeParameter = $this->createMock(Parameter::class);
+
+        $operation->addPathParameter($idParameter);
+        $operation->addPathParameter($nameParameter);
+        $operation->addPathParameter($typeParameter);
 
         $integerType = $this->createMock(TypeScalar::class);
         $integerType->method('asRegex')->willReturn('\d+');
@@ -43,8 +43,6 @@ class PathTest extends TestCase
         $enumType->method('asRegex')->willReturn('(foo|bar)');
         $typeParameter->method('getName')->willReturn('type');
         $typeParameter->method('getType')->willReturn($enumType);
-
-        $this->path->addOperation($operation);
     }
 
     public function testMatches(): void

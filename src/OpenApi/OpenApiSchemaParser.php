@@ -16,24 +16,24 @@ class OpenApiSchemaParser
 {
     public function parse(Schema $schema): TypeAbstract
     {
-        // TODO: oneOf
-        // TODO: anyOf
-
         if (isset($schema->allOf) && is_iterable($schema->allOf)) {
-            $properties = [];
+            $object = new TypeObject();
             foreach ($schema->allOf as $scheme) {
-                $object = $this->parse($scheme);
-                if ($object instanceof TypeObject) {
-                    foreach ($object->getProperties() as $property) {
-                        $properties[] = $property;
+                $parsed = $this->parse($scheme);
+                if ($parsed instanceof TypeObject) {
+                    foreach ($parsed->getProperties() as $property) {
+                        $object->addProperty($property);
                     }
                 }
                 // elseif ...
                 // TODO: allOf can be only objects, right?
             }
 
-            return new TypeObject($properties);
+            return $object;
         }
+
+        // TODO: oneOf
+        // TODO: anyOf
 
         switch ($schema->type) {
             case 'array':
@@ -41,11 +41,11 @@ class OpenApiSchemaParser
                 break;
 
             case 'object':
-                $properties = [];
+                $type = new TypeObject();
                 foreach ($schema->properties as $name => $property) {
-                    $properties[] = new Property($name, $this->parse($property));
+                    $type->addProperty($name, $this->parse($property));
                 }
-                $type = new TypeObject($properties);
+
                 break;
 
             default:

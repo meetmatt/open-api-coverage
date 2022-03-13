@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage;
 
-use MeetMatt\OpenApiSpecCoverage\Specification\Content;
 use MeetMatt\OpenApiSpecCoverage\Specification\Operation;
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
 use MeetMatt\OpenApiSpecCoverage\Specification\Path;
 use MeetMatt\OpenApiSpecCoverage\Specification\Property;
-use MeetMatt\OpenApiSpecCoverage\Specification\RequestBody;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeAbstract;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeArray;
@@ -31,6 +29,9 @@ class Coverage
         $this->factory = $factory;
     }
 
+    /**
+     * @throws Specification\SpecificationException
+     */
     public function process(string $specFile, TestRecorder $testRecorder): void
     {
         // Parse specification
@@ -54,36 +55,35 @@ class Coverage
 
                 $path = $specification->findPath($uriPath);
                 if ($path === null) {
-                    // Undocumented path
-                    $path = new Path($uriPath);
-                    $path->setIsDocumented(false);
-                    $specification->addPath($path);
+                    $specification->addPath($uriPath)->undocumented();
                 }
 
                 $operation = $path->findOperation($httpMethod);
                 if ($operation === null) {
-                    // Undocumented operation
-                    $operation = new Operation($httpMethod);
-                    $operation->setIsDocumented(false);
-                    $path->addOperation($operation);
+                    $path->addOperation($httpMethod)->undocumented();
                 }
 
-                // Mark path and operation as executed
-                $path->setIsExecuted(true);
-                $operation->setIsExecuted(true);
+                $path->executed();
+                $operation->executed();
 
                 $passedQueryParameters = $request->getQueryParams();
                 foreach ($passedQueryParameters as $passedQueryParameterName => $passedQueryParameterValue) {
                     // Find passed parameter in specification
                     $passedQueryParameterType    = $this->convertToType($passedQueryParameterValue);
-                    $specificationQueryParameter = $operation->findQueryParameter($passedQueryParameterName, $passedQueryParameterType);
+                    $specificationQueryParameter = $operation->findQueryParameter(
+                        $passedQueryParameterName,
+                        $passedQueryParameterType
+                    );
 
                     $passedQueryParameterExistsInSpecification = $specificationQueryParameter !== null;
 
                     if ($passedQueryParameterExistsInSpecification) {
                         // Documented parameter
-                        $specificationQueryParameter->setIsExecuted(true);
-                        $doTypesMatch = $this->compareTypes($passedQueryParameterType, $specificationQueryParameter->getType());
+                        $specificationQueryParameter->executed();
+                        $doTypesMatch = $this->compareTypes(
+                            $passedQueryParameterType,
+                            $specificationQueryParameter->getType()
+                        );
                         if (!$doTypesMatch) {
                             // types don't match, need to add a new undocumented parameter
                             $passedQueryParameterExistsInSpecification = false;
@@ -93,13 +93,16 @@ class Coverage
                     if (!$passedQueryParameterExistsInSpecification) {
                         // Undocumented parameter
                         $undocumentedQueryParameterType = $passedQueryParameterType;
-                        $undocumentedQueryParameter     = new Parameter($passedQueryParameterName, $undocumentedQueryParameterType);
+                        $undocumentedQueryParameter     = new Parameter(
+                            $passedQueryParameterName,
+                            $undocumentedQueryParameterType
+                        );
                         $operation->addQueryParameter($undocumentedQueryParameter);
 
-                        $undocumentedQueryParameter->setIsDocumented(false);
-                        $undocumentedQueryParameter->setIsExecuted(true);
-                        $undocumentedQueryParameterType->setIsExecuted(true);
-                        $undocumentedQueryParameterType->setIsDocumented(false);
+                        $undocumentedQueryParameter->undocumented();
+                        $undocumentedQueryParameter->executed();
+                        $undocumentedQueryParameterType->executed();
+                        $undocumentedQueryParameterType->undocumented();
                     }
                 }
 
@@ -108,7 +111,7 @@ class Coverage
                 if (!empty($pathParameters)) {
                     // Since the path was found in the spec, means that all path parameters matched something, so we mark all of them as executed
                     foreach ($pathParameters as $pathParameter) {
-                        $pathParameter->setIsExecuted(true);
+                        $pathParameter->executed();
                     }
 
                     // TODO: enum path parameters need to be tracked against passed values
@@ -149,7 +152,7 @@ class Coverage
         if ($passedType instanceof TypeArray && $specType instanceof TypeArray) {
             if (get_class($passedType->getType()) === get_class($specType->getType())) {
                 // array element types match
-                $specType->setIsExecuted(true);
+                $specType->executed();
 
                 return true;
             }
@@ -166,10 +169,13 @@ class Coverage
                 foreach ($passedProperties as $passedPropertyName => $passedProperty) {
                     if ($passedPropertyName === $specPropertyName) {
                         // -> spec property was executed
-                        $specProperty->setIsExecuted(true);
+                        $specProperty->executed();
 
                         // properties have the same name, but we need to check that types match
-                        $doPropertyTypesMatch = $this->compareTypes($passedProperty->getType(), $specProperty->getType());
+                        $doPropertyTypesMatch = $this->compareTypes(
+                            $passedProperty->getType(),
+                            $specProperty->getType()
+                        );
 
                         if (!$doPropertyTypesMatch) {
                             // -> passed property matched, so we don't need to create that undocumented property
@@ -181,8 +187,8 @@ class Coverage
 
             // add all unmatched passed properties as undocumented
             foreach ($unmatchedPassedProperties as $undocumentedProperty) {
-                $undocumentedProperty->setIsExecuted(true);
-                $undocumentedProperty->setIsDocumented(false);
+                $undocumentedProperty->executed();
+                $undocumentedProperty->undocumented();
                 $specType->addProperty($undocumentedProperty);
             }
 
@@ -215,13 +221,12 @@ class Coverage
         if (is_array($value)) {
             if ($this->isObject($value)) {
                 // associative array is an object
-                $properties = [];
-                foreach ($value as $v) {
-                    // recursively convert values to types
-                    $properties[] = $this->convertToType($v);
+                $object = new TypeObject();
+                foreach ($value as $name => $spec) {
+                    $object->addProperty($name, $this->convertToType($spec));
                 }
 
-                return new TypeObject($properties);
+                return $object;
             }
 
             // ordinary list

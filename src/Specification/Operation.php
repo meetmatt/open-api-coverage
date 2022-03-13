@@ -8,25 +8,21 @@ class Operation extends CoverageElement
 {
     private string $httpMethod;
 
-    /** @var array<Parameter> */
-    private array $pathParameters;
+    /** @var Parameter[] */
+    private array $pathParameters = [];
 
-    /** @var array<Parameter> */
-    private array $queryParameters;
+    /** @var Parameter[] */
+    private array $queryParameters = [];
 
-    /** @var array<RequestBody> */
-    private array $requestBodies;
+    /** @var RequestBody[] */
+    private array $requestBodies = [];
 
-    /** @var array<Response> */
-    private array $responses;
+    /** @var Response[] */
+    private array $responses = [];
 
     public function __construct(string $httpMethod)
     {
-        $this->httpMethod      = $httpMethod;
-        $this->pathParameters  = [];
-        $this->queryParameters = [];
-        $this->requestBodies   = [];
-        $this->responses       = [];
+        $this->httpMethod = $httpMethod;
     }
 
     public function getHttpMethod(): string
@@ -35,7 +31,7 @@ class Operation extends CoverageElement
     }
 
     /**
-     * @return array<Parameter>
+     * @return Parameter[]
      */
     public function getPathParameters(): array
     {
@@ -43,7 +39,7 @@ class Operation extends CoverageElement
     }
 
     /**
-     * @return array<Parameter>
+     * @return Parameter[]
      */
     public function getQueryParameters(): array
     {
@@ -51,7 +47,7 @@ class Operation extends CoverageElement
     }
 
     /**
-     * @return array<RequestBody>
+     * @return RequestBody[]
      */
     public function getRequestBodies(): array
     {
@@ -59,7 +55,7 @@ class Operation extends CoverageElement
     }
 
     /**
-     * @return array<Response>
+     * @return Response[]
      */
     public function getResponses(): array
     {

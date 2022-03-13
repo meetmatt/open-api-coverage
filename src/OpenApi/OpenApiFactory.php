@@ -9,7 +9,7 @@ use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
 
 class OpenApiFactory implements SpecificationFactoryInterface
 {
-    private OpenApiReader              $reader;
+    private OpenApiReader $reader;
 
     private OpenApiSpecificationParser $parser;
 
@@ -24,8 +24,16 @@ class OpenApiFactory implements SpecificationFactoryInterface
         $openApi = $this->reader->readFromFile($filePath);
 
         $specification = new Specification();
-        foreach ($this->parser->parsePaths($openApi) as $path) {
-            $specification->addPath($path);
+
+        foreach ($openApi->paths as $uriPath => $spec) {
+            $path = $specification->addPath($uriPath);
+            foreach ($spec->getOperations() as $httpMethod => $openApiOperation) {
+                $operation = $path->addOperation($httpMethod);
+
+                $this->parser->parseParameters($operation, $openApiOperation);
+                $this->parser->parseRequests($operation, $openApiOperation);
+                $this->parser->parseResponses($operation, $openApiOperation);
+            }
         }
 
         return $specification;
