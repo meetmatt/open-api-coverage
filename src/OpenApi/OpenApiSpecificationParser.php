@@ -30,7 +30,12 @@ class OpenApiSpecificationParser
         }
 
         foreach ($openApiOperation->parameters as $openApiParameter) {
-            $parameter = new Parameter($openApiParameter->name, $this->parser->parse($openApiParameter->schema));
+            $name = $openApiParameter->name;
+            if (strpos($name, '[]') !== false) {
+                $name = str_replace('[]', '', $name);
+            }
+
+            $parameter = new Parameter($name, $this->parser->parse($openApiParameter->schema));
 
             if ($openApiParameter->in === 'query') {
                 $operation->addQueryParameter($parameter);

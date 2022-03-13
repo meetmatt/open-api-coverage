@@ -12,7 +12,7 @@ class TypeEnum extends TypeAbstract implements RegexSerializable
     private array $enum;
 
     /** @var string[]|int[]|float[] */
-    private array $executedEnum;
+    private array $executedEnum = [];
 
     public function __construct(TypeScalar $scalarType, array $enum)
     {
@@ -26,14 +26,6 @@ class TypeEnum extends TypeAbstract implements RegexSerializable
     }
 
     /**
-     * @return float[]|int[]|string[]
-     */
-    public function getEnum(): array
-    {
-        return $this->enum;
-    }
-
-    /**
      * @param float|int|string $value
      */
     public function setEnumValueAsExecuted($value): void
@@ -44,9 +36,25 @@ class TypeEnum extends TypeAbstract implements RegexSerializable
     /**
      * @return float[]|int[]|string[]
      */
-    public function getExecutedEnum(): array
+    public function getDocumentedExecutedEnum(): array
     {
-        return $this->executedEnum;
+        return array_values(array_intersect($this->enum, $this->executedEnum));
+    }
+
+    /**
+     * @return float[]|int[]|string[]
+     */
+    public function getNonExecutedEnum(): array
+    {
+        return array_values(array_diff($this->enum, $this->executedEnum));
+    }
+
+    /**
+     * @return float[]|int[]|string[]
+     */
+    public function getUndocumentedEnum(): array
+    {
+        return array_values(array_diff($this->executedEnum, $this->enum));
     }
 
     public function asRegex(): string

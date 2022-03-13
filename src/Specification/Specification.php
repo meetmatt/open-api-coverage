@@ -29,7 +29,7 @@ class Specification
     /**
      * @throws SpecificationException
      */
-    public function findPath(string $uriPath): ?Path
+    public function path(string $uriPath): ?Path
     {
         $matches = [];
         foreach ($this->paths as $path) {

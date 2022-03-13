@@ -17,9 +17,11 @@ trait CoverageElementTrait
         $this->isDocumented = false;
     }
 
-    public function executed(): void
+    public function executed(): self
     {
         $this->isExecuted = true;
+
+        return $this;
     }
 
     public function markAsAsserted(): void

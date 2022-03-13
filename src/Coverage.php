@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MeetMatt\OpenApiSpecCoverage;
 
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
+use MeetMatt\OpenApiSpecCoverage\Specification\Property;
 use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationException;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
@@ -48,58 +49,54 @@ class Coverage
                 $response = $log->getResponse();
 
                 $uriPath = $request->getUri()->getPath();
-                $path    = $specification->findPath($uriPath);
+                $path    = $specification->path($uriPath);
                 if ($path === null) {
                     $path = $specification->addPath($uriPath);
                     $path->undocumented();
                 }
                 $path->executed();
 
-                $httpMethod = $request->getMethod();
-                $operation  = $path->findOperation($httpMethod);
+                $httpMethod = strtolower($request->getMethod());
+                $operation  = $path->operation($httpMethod);
                 if ($operation === null) {
                     $operation = $path->addOperation($httpMethod);
                     $operation->undocumented();
                 }
                 $operation->executed();
 
-                $passedQueryParameters = $request->getQueryParams();
-                foreach ($passedQueryParameters as $passedQueryParameterName => $passedQueryParameterValue) {
+                $passedQueryParams = $request->getQueryParams();
+                foreach ($passedQueryParams as $passedParamName => $passedParamValue) {
                     // Find passed parameter in specification
-                    $passedQueryParameterType    = $this->convertToType($passedQueryParameterValue);
-                    $specificationQueryParameter = $operation->findQueryParameter(
-                        $passedQueryParameterName,
-                        $passedQueryParameterType
-                    );
+                    $passedParamType = $this->convertToType($passedParamValue);
+                    $specParam       = $operation->findQueryParameter($passedParamName, $passedParamType);
 
-                    $passedQueryParameterExistsInSpecification = $specificationQueryParameter !== null;
+                    $passedParamExistsInSpec = $specParam !== null;
 
-                    if ($passedQueryParameterExistsInSpecification) {
+                    if ($passedParamExistsInSpec) {
                         // Documented parameter
-                        $specificationQueryParameter->executed();
-                        $doTypesMatch = $this->compareTypes(
-                            $passedQueryParameterType,
-                            $specificationQueryParameter->getType()
-                        );
+                        $specParam->executed();
+
+                        $specParamType = $specParam->getType();
+                        $doTypesMatch  = $this->compareTypes($passedParamType, $specParamType);
                         if (!$doTypesMatch) {
                             // types don't match, need to add a new undocumented parameter
-                            $passedQueryParameterExistsInSpecification = false;
+                            $passedParamExistsInSpec = false;
                         }
                     }
 
-                    if (!$passedQueryParameterExistsInSpecification) {
+                    if (!$passedParamExistsInSpec) {
                         // Undocumented parameter
-                        $undocumentedQueryParameterType = $passedQueryParameterType;
+                        $undocumentedQueryParameterType = $passedParamType;
                         $undocumentedQueryParameter     = new Parameter(
-                            $passedQueryParameterName,
+                            $passedParamName,
                             $undocumentedQueryParameterType
                         );
                         $operation->addQueryParameter($undocumentedQueryParameter);
 
                         $undocumentedQueryParameter->undocumented();
                         $undocumentedQueryParameter->executed();
-                        $undocumentedQueryParameterType->executed();
                         $undocumentedQueryParameterType->undocumented();
+                        $undocumentedQueryParameterType->executed();
                     }
                 }
 
@@ -149,8 +146,7 @@ class Coverage
     private function compareTypes(TypeAbstract $passedType, TypeAbstract $specType): bool
     {
         if ($passedType instanceof TypeArray && $specType instanceof TypeArray) {
-            if (get_class($passedType->getType()) === get_class($specType->getType())) {
-                // array element types match
+            if ($this->compareTypes($passedType->getType(), $specType->getType())) {
                 $specType->executed();
 
                 return true;
@@ -161,33 +157,38 @@ class Coverage
         }
 
         if ($passedType instanceof TypeObject && $specType instanceof TypeObject) {
-            $specProperties            = $specType->getProperties();
-            $unmatchedPassedProperties = $passedType->getProperties();
-            $passedProperties          = $unmatchedPassedProperties;
-            foreach ($specProperties as $specPropertyName => $specProperty) {
-                foreach ($passedProperties as $passedPropertyName => $passedProperty) {
+            $specProperties         = $specType->getProperties();
+            $passedProperties       = $passedType->getProperties();
+            $undocumentedProperties = array_combine(
+                array_map(static fn(Property $property) => $property->getName(), $passedProperties),
+                $passedProperties
+            );
+
+            foreach ($specProperties as $specProperty) {
+                foreach ($passedProperties as $passedProperty) {
+                    $passedPropertyName = $passedProperty->getName();
+                    $specPropertyName   = $specProperty->getName();
                     if ($passedPropertyName === $specPropertyName) {
-                        // -> spec property was executed
+                        $passedPropertyType = $passedProperty->getType();
+                        $specPropertyType   = $specProperty->getType();
+
                         $specProperty->executed();
-
-                        // properties have the same name, but we need to check that types match
-                        $doPropertyTypesMatch = $this->compareTypes(
-                            $passedProperty->getType(),
-                            $specProperty->getType()
-                        );
-
-                        if (!$doPropertyTypesMatch) {
-                            // -> passed property matched, so we don't need to create that undocumented property
-                            unset($unmatchedPassedProperties[$specPropertyName]);
+                        $doPropertyTypesMatch = $this->compareTypes($passedPropertyType, $specPropertyType);
+                        if ($doPropertyTypesMatch) {
+                            $specPropertyType->executed();
+                            unset($undocumentedProperties[$specPropertyName]);
                         }
                     }
                 }
             }
 
             // add all unmatched passed properties as undocumented
-            foreach ($unmatchedPassedProperties as $undocumentedProperty) {
+            /** @var Property[] $undocumentedProperties */
+            foreach ($undocumentedProperties as $undocumentedProperty) {
                 $undocumentedProperty->executed();
                 $undocumentedProperty->undocumented();
+                $undocumentedProperty->getType()->executed();
+                $undocumentedProperty->getType()->undocumented();
                 $specType->addProperty($undocumentedProperty);
             }
 
@@ -195,16 +196,29 @@ class Coverage
             return true;
         }
 
-        if ($specType instanceof TypeEnum && $passedType instanceof TypeScalar) {
-            // the element is declared as enum, but we can actually only pass scalars in the request, so passedType will never be TypeEnum
-            if ($passedType->getType() === $specType->getScalarType()->getType()) {
-                $specType->setEnumValueAsExecuted($passedType->getValue());
-            } else {
-                // passed type doesn't match the enum type -> create a new element in the parent with a different enum scalar type
-                return false;
+        if ($passedType instanceof TypeScalar) {
+            if ($specType instanceof TypeScalar) {
+                $passedScalarType = $passedType->getType();
+                $specScalarType   = $specType->getType();
+                if (
+                    $passedScalarType === $specScalarType
+                    || (
+                        in_array($specScalarType, ['float', 'number'], true)
+                        &&
+                        in_array($passedScalarType, ['float', 'integer'], true)
+                    )
+                ) {
+                    $specType->executed();
+
+                    return true;
+                };
+            } elseif ($specType instanceof TypeEnum) {
+                if ($this->compareTypes($passedType, $specType->getScalarType())) {
+                    $specType->setEnumValueAsExecuted($passedType->getValue());
+
+                    return true;
+                }
             }
-        } elseif ($passedType instanceof TypeScalar && $specType instanceof TypeScalar) {
-            return $passedType->getType() === $specType->getType();
         }
 
         return false;
@@ -220,9 +234,9 @@ class Coverage
         if (is_array($value)) {
             if ($this->isObject($value)) {
                 // associative array is an object
-                $object = new TypeObject();
+                $object = (new TypeObject())->executed();
                 foreach ($value as $name => $spec) {
-                    $object->addProperty($name, $this->convertToType($spec));
+                    $object->addProperty($name, $this->convertToType($spec))->executed();
                 }
 
                 return $object;
@@ -234,20 +248,20 @@ class Coverage
             // TODO: edge case: can be an array of mixed types, e.g. strings, floats, arrays ...
             // it will match to the anyOf type in the specification; this is why TypeArray has multiple TypeAbstracts internally
 
-            $type = $this->convertToType(current($value));
+            $type = $this->convertToType(current($value))->executed();
 
-            return new TypeArray($type);
+            return (new TypeArray($type))->executed();
         }
 
         if ($this->isIntegerish($value)) {
-            return new TypeScalar('integer', (int)$value);
+            return (new TypeScalar('integer', (int)$value))->executed();
         }
 
         if ($this->isFloatish($value)) {
-            return new TypeScalar('number', (float)$value);
+            return (new TypeScalar('number', (float)$value))->executed();
         }
 
-        return new TypeScalar('string', (string)$value);
+        return (new TypeScalar('string', (string)$value))->executed();
     }
 
     private function isObject(array $array): bool
@@ -264,8 +278,10 @@ class Coverage
         return false;
     }
 
-    private function isIntegerish($value): bool
-    {
+    private
+    function isIntegerish(
+        $value
+    ): bool {
         if (is_int($value)) {
             return true;
         }
@@ -274,8 +290,10 @@ class Coverage
         return (int)$value == $value;
     }
 
-    private function isFloatish($value): bool
-    {
+    private
+    function isFloatish(
+        $value
+    ): bool {
         if (is_float($value)) {
             return true;
         }

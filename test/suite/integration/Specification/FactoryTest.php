@@ -20,7 +20,7 @@ class FactoryTest extends TestCase
 
     public function testFindPath(): void
     {
-        $path = $this->specification->findPath('/pets/1234');
+        $path = $this->specification->path('/pets/1234');
 
         $this->assertEquals('/pets/{id}', $path->getUriPath());
         $this->assertTrue($path->matches('/pets/1234'));

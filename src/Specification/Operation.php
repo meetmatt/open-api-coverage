@@ -96,7 +96,7 @@ class Operation extends CoverageElement
             if (
                 $queryParameter->getName() === $queryParameterName
                 &&
-                $queryParameter->getType() === $queryParameterType
+                get_class($queryParameter->getType()) === get_class($queryParameterType)
             ) {
                 return $queryParameter;
             }

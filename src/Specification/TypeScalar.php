@@ -43,7 +43,10 @@ class TypeScalar extends TypeAbstract implements RegexSerializable
                 // forward slashes and dots don't work correctly in path parameters
                 return '[^./]+';
 
+            case 'float':
             case 'number':
+                return '(0|[1-9]+)?\.\d*';
+
             case 'integer':
                 return '\d+';
 

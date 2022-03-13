@@ -46,7 +46,7 @@ class Path extends CoverageElement
         return $this->operations;
     }
 
-    public function findOperation(string $httpMethod): ?Operation
+    public function operation(string $httpMethod): ?Operation
     {
         foreach ($this->operations as $operation) {
             if ($operation->getHttpMethod() === $httpMethod) {

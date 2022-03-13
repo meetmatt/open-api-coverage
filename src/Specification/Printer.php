@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
+use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Output\ConsoleOutput;
+
 class Printer
 {
     public function print(Specification $specification): void
     {
+        $data = [];
+
         foreach ($specification->getPaths() as $path) {
-            echo "\n{$path->getUriPath()}";
             foreach ($path->getOperations() as $operation) {
                 $types = [];
                 foreach ($operation->getPathParameters() as $parameter) {
@@ -30,22 +34,30 @@ class Printer
                         $types += self::flattenTypeTree($property->getName(), $property->getType());
                     }
                 }
-                echo "\n  {$operation->getHttpMethod()}";
-                $longestNameLength = 0;
+
                 foreach ($types as $key => $value) {
-                    $len = strlen($key);
-                    if ($longestNameLength < $len) {
-                        $longestNameLength = $len;
+                    if (!isset($value[0])) {
+                        $value = [$value];
+                    }
+                    foreach ($value as $val) {
+                        $data[] = [
+                            $path->getUriPath(),
+                            $operation->getHttpMethod(),
+                            $key,
+                            $val['v'],
+                            $val['d'],
+                            $val['x']
+                        ];
                     }
                 }
-                foreach ($types as $key => $value) {
-                    $padding = str_repeat(' ', $longestNameLength - strlen($key));
-                    echo "\n    $key$padding = $value";
-                }
             }
-            echo "\n";
         }
-        echo "\n";
+
+        $output = new ConsoleOutput();
+        $table  = new Table($output);
+        $table->setHeaders(['Path', 'HTTP Method', 'Parameter', 'Type', 'Documented', 'Executed']);
+        $table->addRows($data);
+        $table->render();
     }
 
     private static function flattenTypeTree(string $name, TypeAbstract $type): array
@@ -53,20 +65,70 @@ class Printer
         $flat = [];
 
         if ($type instanceof TypeScalar) {
-            $flat[$name] = '<' . $type->getType() . '>';
+            $flat[$name] = [
+                'v' => '<' . $type->getType() . '>',
+                'd' => $type->isDocumented() ? '+' : '-',
+                'x' => $type->isExecuted() ? '+' : '-',
+            ];
         } elseif ($type instanceof TypeEnum) {
-            /** @noinspection JsonEncodingApiUsageInspection */
-            $flat[$name] = '<' . $type->getScalarType()->getType() . '>' . json_encode($type->getEnum());
+            $flat[$name] = [];
+
+            $documentedCoveredEnums = $type->getDocumentedExecutedEnum();
+            if (!empty($documentedCoveredEnums)) {
+                $flat[$name][] = [
+                    'v' => '<' . $type->getScalarType()->getType() . '>' . json_encode($documentedCoveredEnums),
+                    'd' => '+',
+                    'x' => '+',
+                ];
+            }
+
+            $uncoveredEnums = $type->getNonExecutedEnum();
+            if (!empty($uncoveredEnums)) {
+                $flat[$name][] = [
+                    'v' => '<' . $type->getScalarType()->getType() . '>' . json_encode($uncoveredEnums),
+                    'd' => '+',
+                    'x' => '-',
+                ];
+            }
+
+            $undocumentedEnums = $type->getUndocumentedEnum();
+            if (!empty($undocumentedEnums)) {
+                $flat[$name][] = [
+                    'v' => '<' . $type->getScalarType()->getType() . '>' . json_encode($undocumentedEnums),
+                    'd' => '-',
+                    'x' => '+',
+                ];
+            }
         } elseif ($type instanceof TypeArray) {
             foreach (self::flattenTypeTree($name . '[]', $type->getType()) as $key => $value) {
-                $flat[$key] = $value;
+                if (isset($value['v'])) {
+                    $value = [$value];
+                }
+                $flat[$key] = [];
+                foreach ($value as $val) {
+                    $flat[$key][] = [
+                        'v' => $val['v'],
+                        'd' => $val['d'],
+                        'x' => $val['x'],
+                    ];
+                }
             }
         } elseif ($type instanceof TypeObject) {
             foreach ($type->getProperties() as $property) {
                 $propertyPrefix    = $name . '.' . $property->getName();
                 $flattenedProperty = self::flattenTypeTree($propertyPrefix, $property->getType());
                 foreach ($flattenedProperty as $key => $value) {
-                    $flat[$key] = $value;
+                    if (isset($value['v'])) {
+                        $value = [$value];
+                    }
+                    $flat[$key] = [];
+                    foreach ($value as $val) {
+                        $flat[$key][] = [
+                            'v' => $val['v'],
+                            'd' => $val['d'],
+                            'x' => $val['x'],
+                        ];
+                    }
                 }
             }
         }
