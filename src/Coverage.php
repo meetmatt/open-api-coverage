@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage;
 
-use MeetMatt\OpenApiSpecCoverage\Specification\Operation;
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
-use MeetMatt\OpenApiSpecCoverage\Specification\Path;
-use MeetMatt\OpenApiSpecCoverage\Specification\Property;
+use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
+use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationException;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeAbstract;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeArray;
@@ -30,9 +29,9 @@ class Coverage
     }
 
     /**
-     * @throws Specification\SpecificationException
+     * @throws SpecificationException
      */
-    public function process(string $specFile, TestRecorder $testRecorder): void
+    public function process(string $specFile, TestRecorder $testRecorder): Specification
     {
         // Parse specification
         $specification = $this->factory->fromFile($specFile);
@@ -45,25 +44,23 @@ class Coverage
         foreach ($testRecorder->getLogs() as $log) {
             // On each HTTP call we find the path and operation in the specification
             if ($log instanceof HttpCall) {
-                $request    = $log->getRequest();
-                $response   = $log->getResponse();
-                $uriPath    = $request->getUri()->getPath();
-                $httpMethod = $request->getMethod();
+                $request  = $log->getRequest();
+                $response = $log->getResponse();
 
-                // TODO: match path and operation directly by operationId if it's set during the test with coversOperationId($id)
-                // -> introduce new log entity with type CoversOperationId
-
-                $path = $specification->findPath($uriPath);
+                $uriPath = $request->getUri()->getPath();
+                $path    = $specification->findPath($uriPath);
                 if ($path === null) {
-                    $specification->addPath($uriPath)->undocumented();
+                    $path = $specification->addPath($uriPath);
+                    $path->undocumented();
                 }
-
-                $operation = $path->findOperation($httpMethod);
-                if ($operation === null) {
-                    $path->addOperation($httpMethod)->undocumented();
-                }
-
                 $path->executed();
+
+                $httpMethod = $request->getMethod();
+                $operation  = $path->findOperation($httpMethod);
+                if ($operation === null) {
+                    $operation = $path->addOperation($httpMethod);
+                    $operation->undocumented();
+                }
                 $operation->executed();
 
                 $passedQueryParameters = $request->getQueryParams();
@@ -145,6 +142,8 @@ class Coverage
                 // TODO: response content assertion
             }
         }
+
+        return $specification;
     }
 
     private function compareTypes(TypeAbstract $passedType, TypeAbstract $specType): bool

@@ -1,2 +1,4 @@
 /vendor
+/test/data/_generated
+/test/support/_generated
 /composer.lock

@@ -30,7 +30,7 @@ class Path extends CoverageElement
      */
     public function matches(string $uriPath): bool
     {
-        return preg_match($this->getUriPathAsRegex(), $uriPath) === 1;
+        return $uriPath === $this->uriPath || preg_match($this->getUriPathAsRegex(), $uriPath) === 1;
     }
 
     public function getUriPath(): string

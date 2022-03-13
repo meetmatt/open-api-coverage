@@ -43,6 +43,7 @@ class Specification
         }
 
         if (count($matches) > 1) {
+            // TODO: match by operation ID
             throw SpecificationException::uriMatchedMultiplePaths($matches);
         }
 

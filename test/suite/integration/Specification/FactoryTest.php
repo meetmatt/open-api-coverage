@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Test\Suite\Integration\Specification;
 
-use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiFactory;
-use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiReader;
-use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiSchemaParser;
-use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiSpecificationParser;
 use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
-use PHPUnit\Framework\TestCase;
+use MeetMatt\OpenApiSpecCoverage\Test\Support\TestCase;
 
 class FactoryTest extends TestCase
 {
@@ -17,14 +13,9 @@ class FactoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $factory = new OpenApiFactory(
-            new OpenApiReader(),
-            new OpenApiSpecificationParser(
-                new OpenApiSchemaParser()
-            )
-        );
+        $factory = $this->container->factory();
 
-        $this->specification = $factory->fromFile(codecept_data_dir('petstore.yaml'));
+        $this->specification = $factory->fromFile($this->container->specFile());
     }
 
     public function testFindPath(): void

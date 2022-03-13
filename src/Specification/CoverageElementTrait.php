@@ -26,4 +26,19 @@ trait CoverageElementTrait
     {
         $this->isAsserted = true;
     }
+
+    public function isDocumented(): bool
+    {
+        return $this->isDocumented;
+    }
+
+    public function isExecuted(): bool
+    {
+        return $this->isExecuted;
+    }
+
+    public function isAsserted(): bool
+    {
+        return $this->isAsserted;
+    }
 }
