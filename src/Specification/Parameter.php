@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class Parameter extends CoverageElement
+class Parameter extends CoverageElement implements Typed
 {
-    private string       $name;
+    use TypedTrait;
 
-    private TypeAbstract $type;
+    private string $name;
 
     public function __construct(string $name, TypeAbstract $type)
     {
@@ -19,10 +19,5 @@ class Parameter extends CoverageElement
     public function getName(): string
     {
         return $this->name;
-    }
-
-    public function getType(): TypeAbstract
-    {
-        return $this->type;
     }
 }

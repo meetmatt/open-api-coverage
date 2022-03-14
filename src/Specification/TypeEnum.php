@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class TypeEnum extends TypeAbstract implements RegexSerializable
+class TypeEnum extends TypeAbstract implements RegexSerializable, Typed
 {
-    private TypeScalar $scalarType;
+    use TypedTrait;
 
     /** @var string[]|int[]|float[] */
     private array $enum;
@@ -14,15 +14,10 @@ class TypeEnum extends TypeAbstract implements RegexSerializable
     /** @var string[]|int[]|float[] */
     private array $executedEnum = [];
 
-    public function __construct(TypeScalar $scalarType, array $enum)
+    public function __construct(TypeScalar $type, array $enum)
     {
-        $this->scalarType = $scalarType;
-        $this->enum       = $enum;
-    }
-
-    public function getScalarType(): TypeScalar
-    {
-        return $this->scalarType;
+        $this->type = $type;
+        $this->enum = $enum;
     }
 
     /**

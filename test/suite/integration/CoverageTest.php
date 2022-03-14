@@ -27,21 +27,22 @@ class CoverageTest extends TestCase
     public function testProcess(): void
     {
         $params = [
-            ['tags' => ['funny']],
-            ['tags' => ['cute']],
-            ['tags' => ['undocumented']],
-            ['limit' => 100],
+            [['type' => 'blue'], ['tags' => ['funny']]],
+            [['type' => 'blue'], ['tags' => ['cute']]],
+            [['type' => 'blue'], ['tags' => ['undocumented']]],
+            [['type' => 'green'], ['limit' => 100]],
             [
-                'filter' => [
+                ['type' => 'undocumented'],
+                ['filter' => [
                     'name'         => 'Kitty',
                     'age'          => 5,
                     'undocumented' => 'black',
-                ]
+                ]]
             ],
         ];
 
         foreach ($params as $param) {
-            $this->recordHttpCall('get', 'http://server/pets', 200, $param);
+            $this->recordHttpCall('get', 'http://server/pets/' . $param[0]['type'], 200, $param[1]);
         }
 
         $spec = $this->coverage->process($this->container->specFileSimple(), $this->recorder);

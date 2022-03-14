@@ -17,21 +17,21 @@ class Printer
             foreach ($path->getOperations() as $operation) {
                 $types = [];
                 foreach ($operation->getPathParameters() as $parameter) {
-                    $types += self::flattenTypeTree($parameter->getName(), $parameter->getType());
+                    $types += self::flattenTypeTree('path.' . $parameter->getName(), $parameter->getType());
                 }
                 foreach ($operation->getQueryParameters() as $parameter) {
-                    $types += self::flattenTypeTree($parameter->getName(), $parameter->getType());
+                    $types += self::flattenTypeTree('query.' . $parameter->getName(), $parameter->getType());
                 }
                 foreach ($operation->getResponses() as $response) {
                     foreach ($response->getContents() as $responseBody) {
                         foreach ($responseBody->getProperties() as $property) {
-                            $types += self::flattenTypeTree($property->getName(), $property->getType());
+                            $types += self::flattenTypeTree('response.' . $property->getName(), $property->getType());
                         }
                     }
                 }
                 foreach ($operation->getRequestBodies() as $requestBody) {
                     foreach ($requestBody->getProperties() as $property) {
-                        $types += self::flattenTypeTree($property->getName(), $property->getType());
+                        $types += self::flattenTypeTree('request.' . $property->getName(), $property->getType());
                     }
                 }
 
@@ -76,7 +76,7 @@ class Printer
             $documentedCoveredEnums = $type->getDocumentedExecutedEnum();
             if (!empty($documentedCoveredEnums)) {
                 $flat[$name][] = [
-                    'v' => '<' . $type->getScalarType()->getType() . '>' . json_encode($documentedCoveredEnums),
+                    'v' => '<' . $type->getType()->getType() . '>' . json_encode($documentedCoveredEnums),
                     'd' => '+',
                     'x' => '+',
                 ];
@@ -85,7 +85,7 @@ class Printer
             $uncoveredEnums = $type->getNonExecutedEnum();
             if (!empty($uncoveredEnums)) {
                 $flat[$name][] = [
-                    'v' => '<' . $type->getScalarType()->getType() . '>' . json_encode($uncoveredEnums),
+                    'v' => '<' . $type->getType()->getType() . '>' . json_encode($uncoveredEnums),
                     'd' => '+',
                     'x' => '-',
                 ];
@@ -94,7 +94,7 @@ class Printer
             $undocumentedEnums = $type->getUndocumentedEnum();
             if (!empty($undocumentedEnums)) {
                 $flat[$name][] = [
-                    'v' => '<' . $type->getScalarType()->getType() . '>' . json_encode($undocumentedEnums),
+                    'v' => '<' . $type->getType()->getType() . '>' . json_encode($undocumentedEnums),
                     'd' => '-',
                     'x' => '+',
                 ];

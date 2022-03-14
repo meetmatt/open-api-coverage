@@ -11,6 +11,7 @@ use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationException;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeAbstract;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeArray;
+use MeetMatt\OpenApiSpecCoverage\Specification\Typed;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeEnum;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeObject;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeScalar;
@@ -61,6 +62,10 @@ class Coverage
                 if ($operation === null) {
                     $operation = $path->addOperation($httpMethod);
                     $operation->undocumented();
+                    foreach ($operation->getPathParameters() as $pathParameter) {
+                        $this->markAsUndocumented($pathParameter->getType());
+                        $this->markAsExecuted($pathParameter->getType());
+                    }
                 }
                 $operation->executed();
 
@@ -95,8 +100,8 @@ class Coverage
 
                         $undocumentedQueryParameter->undocumented();
                         $undocumentedQueryParameter->executed();
-                        $undocumentedQueryParameterType->undocumented();
-                        $undocumentedQueryParameterType->executed();
+                        $this->markAsExecuted($undocumentedQueryParameterType);
+                        $this->markAsUndocumented($undocumentedQueryParameterType);
                     }
                 }
 
@@ -106,6 +111,9 @@ class Coverage
                     // Since the path was found in the spec, means that all path parameters matched something, so we mark all of them as executed
                     foreach ($pathParameters as $pathParameter) {
                         $pathParameter->executed();
+
+                        // TODO: introduce enum type path parameter tracking and remove this line
+                        $this->markAsExecuted($pathParameter->getType());
                     }
 
                     // TODO: enum path parameters need to be tracked against passed values
@@ -187,8 +195,8 @@ class Coverage
             foreach ($undocumentedProperties as $undocumentedProperty) {
                 $undocumentedProperty->executed();
                 $undocumentedProperty->undocumented();
-                $undocumentedProperty->getType()->executed();
-                $undocumentedProperty->getType()->undocumented();
+                $this->markAsExecuted($undocumentedProperty->getType());
+                $this->markAsUndocumented($undocumentedProperty->getType());
                 $specType->addProperty($undocumentedProperty);
             }
 
@@ -204,16 +212,15 @@ class Coverage
                     $passedScalarType === $specScalarType
                     || (
                         in_array($specScalarType, ['float', 'number'], true)
-                        &&
-                        in_array($passedScalarType, ['float', 'integer'], true)
+                        && in_array($passedScalarType, ['float', 'integer'], true)
                     )
                 ) {
-                    $specType->executed();
+                    $this->markAsExecuted($specType);
 
                     return true;
                 };
             } elseif ($specType instanceof TypeEnum) {
-                if ($this->compareTypes($passedType, $specType->getScalarType())) {
+                if ($this->compareTypes($passedType, $specType->getType())) {
                     $specType->setEnumValueAsExecuted($passedType->getValue());
 
                     return true;
@@ -232,25 +239,26 @@ class Coverage
     private function convertToType($value): TypeAbstract
     {
         if (is_array($value)) {
-            if ($this->isObject($value)) {
-                // associative array is an object
-                $object = (new TypeObject())->executed();
-                foreach ($value as $name => $spec) {
-                    $object->addProperty($name, $this->convertToType($spec))->executed();
-                }
+            if ($this->arrayIsList($value)) {
+                // ordinary list
+                // determine the type of array elements by looking at the first element
 
-                return $object;
+                // TODO: edge case: can be an array of mixed types, e.g. strings, floats, arrays ...
+                // it will match to the anyOf type in the specification; this is why TypeArray has multiple TypeAbstracts internally
+
+                $type = $this->convertToType(current($value))->executed();
+
+                return (new TypeArray($type))->executed();
             }
 
-            // ordinary list
-            // determine the type of array elements by looking at the first element
+            // if array is not a list, then it's an object
+            // associative array is an object
+            $object = (new TypeObject())->executed();
+            foreach ($value as $name => $spec) {
+                $object->addProperty($name, $this->convertToType($spec))->executed();
+            }
 
-            // TODO: edge case: can be an array of mixed types, e.g. strings, floats, arrays ...
-            // it will match to the anyOf type in the specification; this is why TypeArray has multiple TypeAbstracts internally
-
-            $type = $this->convertToType(current($value))->executed();
-
-            return (new TypeArray($type))->executed();
+            return $object;
         }
 
         if ($this->isIntegerish($value)) {
@@ -264,36 +272,31 @@ class Coverage
         return (new TypeScalar('string', (string)$value))->executed();
     }
 
-    private function isObject(array $array): bool
+    private function arrayIsList(array $array): bool
     {
-        // Can be replaced with !array_is_list($array) in PHP 8.1
+        // Can be replaced with array_is_list($array) in PHP 8.1
 
-        foreach ($array as $key => $value) {
-            if (!$this->isIntegerish($key)) {
-                // if there's at least one non-integer key, then it's an assoc object
-                return true;
+        $keys = array_keys($array);
+        foreach ($keys as $i => $key) {
+            if ((int)$i !== (int)$key) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
-    private
-    function isIntegerish(
-        $value
-    ): bool {
+    private function isIntegerish($value): bool
+    {
         if (is_int($value)) {
             return true;
         }
 
-        /** @noinspection TypeUnsafeComparisonInspection */
-        return (int)$value == $value;
+        return preg_match('/^\d+$/', $value) === 1;
     }
 
-    private
-    function isFloatish(
-        $value
-    ): bool {
+    private function isFloatish($value): bool
+    {
         if (is_float($value)) {
             return true;
         }
@@ -302,5 +305,21 @@ class Coverage
         // return (float)$value == $value;
 
         return preg_match('/(0|[1-9]+)?\.\d*/', $value) === 1;
+    }
+
+    private function markAsUndocumented(TypeAbstract $type): void
+    {
+        $type->undocumented();
+        if ($type instanceof Typed) {
+            $this->markAsUndocumented($type->getType());
+        }
+    }
+
+    private function markAsExecuted(TypeAbstract $type): void
+    {
+        $type->executed();
+        if ($type instanceof Typed) {
+            $this->markAsExecuted($type->getType());
+        }
     }
 }

@@ -4,17 +4,12 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class TypeArray extends TypeAbstract
+class TypeArray extends TypeAbstract implements Typed
 {
-    private TypeAbstract $type;
+    use TypedTrait;
 
     public function __construct(TypeAbstract $type)
     {
         $this->type = $type;
-    }
-
-    public function getType(): TypeAbstract
-    {
-        return $this->type;
     }
 }
