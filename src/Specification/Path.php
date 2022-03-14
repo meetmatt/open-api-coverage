@@ -6,6 +6,8 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Path extends CoverageElement
 {
+    private array $matchedPathParameters = [];
+
     private string $uriPath;
 
     /** @var Operation[] */
@@ -30,7 +32,22 @@ class Path extends CoverageElement
      */
     public function matches(string $uriPath): bool
     {
-        return $uriPath === $this->uriPath || preg_match($this->getUriPathAsRegex(), $uriPath) === 1;
+        if ($uriPath === $this->uriPath) {
+            return true;
+        }
+
+        if (preg_match($this->getUriPathAsRegex(), $uriPath, $matches) === 1) {
+            $this->matchedPathParameters = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getMatchedPathParameters(): array
+    {
+        return $this->matchedPathParameters;
     }
 
     public function getUriPath(): string
@@ -71,7 +88,7 @@ class Path extends CoverageElement
                 if ($type instanceof RegexSerializable) {
                     $uriPath = str_replace(
                         sprintf('/{%s}', $pathParameter->getName()),
-                        sprintf('/%s', $type->asRegex()),
+                        sprintf('/(?<%s>%s)', $pathParameter->getName(), $type->asRegex()),
                         $uriPath
                     );
                 }

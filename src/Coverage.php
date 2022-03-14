@@ -105,25 +105,20 @@ class Coverage
                     }
                 }
 
-                // Request path parameters
-                $pathParameters = $operation->getPathParameters();
-                if (!empty($pathParameters)) {
-                    // Since the path was found in the spec, means that all path parameters matched something, so we mark all of them as executed
-                    foreach ($pathParameters as $pathParameter) {
-                        $pathParameter->executed();
-
-                        // TODO: introduce enum type path parameter tracking and remove this line
-                        $this->markAsExecuted($pathParameter->getType());
+                $matchedPathParameters = $path->getMatchedPathParameters();
+                foreach ($operation->getPathParameters() as $pathParameter) {
+                    if (!array_key_exists($pathParameter->getName(), $matchedPathParameters)) {
+                        continue;
                     }
 
-                    // TODO: enum path parameters need to be tracked against passed values
-                    // In order to accomplish it we need to figure out which path parameters were passed in the $uriPath
-                    // a good idea would be to record it during the $specification->findPath($uriPath) method, save it temporarily in the object
-                    // as an associative array, and use it to check that spec parameters defined as enums were executed for each possible value
-                    // basically we need to do for each detected passed parameter:
-                    // $this->compareTypes($this->convertToType($detectedPassedPathParameter), $pathParameter->getType())
-                    // -> in the end we might find some undocumented enum values or those which were never executed
-                    // undocumented/executed will be figured out during the report generation at the very end
+                    $pathParameter->executed();
+
+                    $matchedPathParameterValue  = $matchedPathParameters[$pathParameter->getName()];
+                    $operationPathParameterType = $pathParameter->getType();
+                    $pathParameter->getType()->executed();
+                    if ($operationPathParameterType instanceof TypeEnum) {
+                        $operationPathParameterType->setEnumValueAsExecuted($matchedPathParameterValue);
+                    }
                 }
 
                 // TODO: request bodies
