@@ -12,9 +12,11 @@ trait CoverageElementTrait
 
     protected bool $isAsserted   = false;
 
-    public function undocumented(): void
+    public function undocumented(): self
     {
         $this->isDocumented = false;
+
+        return $this;
     }
 
     public function executed(): self

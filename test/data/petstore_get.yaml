@@ -80,7 +80,7 @@ components:
             - cat
             - dog
             - uncovered
-        tag:
+        tags:
           $ref: '#/components/schemas/Tag'
     Tag:
       type: array

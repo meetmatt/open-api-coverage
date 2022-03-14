@@ -104,4 +104,15 @@ class Operation extends CoverageElement
 
         return null;
     }
+
+    public function findRequestBody(string $contentType): ?RequestBody
+    {
+        foreach ($this->requestBodies as $requestBody) {
+            if ($requestBody->getContentType() === $contentType) {
+                return $requestBody;
+            }
+        }
+
+        return null;
+    }
 }

@@ -6,6 +6,7 @@ namespace MeetMatt\OpenApiSpecCoverage;
 
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
 use MeetMatt\OpenApiSpecCoverage\Specification\Property;
+use MeetMatt\OpenApiSpecCoverage\Specification\RequestBody;
 use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationException;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
@@ -91,17 +92,13 @@ class Coverage
 
                     if (!$passedParamExistsInSpec) {
                         // Undocumented parameter
-                        $undocumentedQueryParameterType = $passedParamType;
-                        $undocumentedQueryParameter     = new Parameter(
-                            $passedParamName,
-                            $undocumentedQueryParameterType
-                        );
+                        $undocumentedQueryParameter = new Parameter($passedParamName, $passedParamType);
                         $operation->addQueryParameter($undocumentedQueryParameter);
 
                         $undocumentedQueryParameter->undocumented();
                         $undocumentedQueryParameter->executed();
-                        $this->markAsExecuted($undocumentedQueryParameterType);
-                        $this->markAsUndocumented($undocumentedQueryParameterType);
+                        $this->markAsExecuted($passedParamType);
+                        $this->markAsUndocumented($passedParamType);
                     }
                 }
 
@@ -121,7 +118,27 @@ class Coverage
                     }
                 }
 
-                // TODO: request bodies
+                $contentType = $request->getHeader('Content-Type');
+                $parsedBody  = $request->getParsedBody();
+                if (!empty($contentType) && $parsedBody !== null) {
+                    $passedContent = $this->convertToType($parsedBody)->undocumented();
+                    $requestBody   = $operation->findRequestBody($contentType[0]);
+
+                    $passedContentExists = $requestBody !== null;
+                    if ($passedContentExists) {
+                        $requestBody->executed();
+                        if (!$this->compareTypes($passedContent, $requestBody->getType())) {
+                            $passedContentExists = false;
+                        }
+                    }
+
+                    if (!$passedContentExists) {
+                        $requestBody = new RequestBody($contentType[0], $passedContent);
+                        $requestBody->undocumented();
+                        $requestBody->executed();
+                        $operation->addRequestBody($requestBody);
+                    }
+                }
                 // TODO: response contents
             }
 
@@ -216,7 +233,9 @@ class Coverage
                 };
             } elseif ($specType instanceof TypeEnum) {
                 if ($this->compareTypes($passedType, $specType->getType())) {
-                    $specType->setEnumValueAsExecuted($passedType->getValue());
+                    if ($passedType->getValue() !== null) {
+                        $specType->setEnumValueAsExecuted($passedType->getValue());
+                    }
 
                     return true;
                 }
@@ -241,7 +260,7 @@ class Coverage
                 // TODO: edge case: can be an array of mixed types, e.g. strings, floats, arrays ...
                 // it will match to the anyOf type in the specification; this is why TypeArray has multiple TypeAbstracts internally
 
-                $type = $this->convertToType(current($value))->executed();
+                $type = !empty($value) ? $this->convertToType(current($value))->executed() : new TypeScalar('string');
 
                 return (new TypeArray($type))->executed();
             }

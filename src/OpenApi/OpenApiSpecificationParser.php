@@ -54,11 +54,8 @@ class OpenApiSpecificationParser
         }
 
         foreach ($openApiOperation->requestBody->content as $contentType => $mediaType) {
-            $specRequestBody = new RequestBody($contentType);
+            $specRequestBody = new RequestBody($contentType, $this->parser->parse($mediaType->schema));
             $operation->addRequestBody($specRequestBody);
-
-            $name = 'requestBody.' . $contentType;
-            $specRequestBody->addProperty($name, $this->parser->parse($mediaType->schema));
         }
     }
 

@@ -1,0 +1,61 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+servers:
+  - url: https://petstore.swagger.io/api
+paths:
+  /pets:
+    post:
+      description: Creates a new pet.
+      operationId: addPet
+      requestBody:
+        description: Pet to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPet'
+      responses:
+        201:
+          description: Pet created response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+components:
+  schemas:
+    Pet:
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+        - $ref: '#/components/schemas/NewPet'
+    NewPet:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        family:
+          type: string
+          enum:
+            - cat
+            - dog
+            - uncovered
+        tags:
+          $ref: '#/components/schemas/Tag'
+        uncovered:
+          type: string
+    Tag:
+      type: array
+      items:
+        type: string
+        enum:
+          - funny
+          - cute
+          - uncovered

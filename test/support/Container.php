@@ -16,9 +16,14 @@ class Container
         return codecept_data_dir('petstore.yaml');
     }
 
-    public function specFileSimple(): string
+    public function specFileGet(): string
     {
-        return codecept_data_dir('petstore_simple.yaml');
+        return codecept_data_dir('petstore_get.yaml');
+    }
+
+    public function specFilePost(): string
+    {
+        return codecept_data_dir('petstore_post.yaml');
     }
 
     public function factory(): OpenApiFactory

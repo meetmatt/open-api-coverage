@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 class Printer
@@ -22,31 +23,36 @@ class Printer
                 foreach ($operation->getQueryParameters() as $parameter) {
                     $types += self::flattenTypeTree('query.' . $parameter->getName(), $parameter->getType());
                 }
-                foreach ($operation->getResponses() as $response) {
-                    foreach ($response->getContents() as $responseBody) {
-                        foreach ($responseBody->getProperties() as $property) {
-                            $types += self::flattenTypeTree('response.' . $property->getName(), $property->getType());
-                        }
-                    }
-                }
                 foreach ($operation->getRequestBodies() as $requestBody) {
-                    foreach ($requestBody->getProperties() as $property) {
-                        $types += self::flattenTypeTree('request.' . $property->getName(), $property->getType());
-                    }
+                    $types += self::flattenTypeTree('request.' . $requestBody->getContentType(), $requestBody->getType());
                 }
+
+                // TODO: response contents
+                // foreach ($operation->getResponses() as $response) {
+                //     foreach ($response->getContents() as $responseBody) {
+                //         foreach ($responseBody->getProperties() as $property) {
+                //             $types += self::flattenTypeTree('response.' . $property->getName(), $property->getType());
+                //         }
+                //     }
+                // }
 
                 foreach ($types as $key => $value) {
                     if (!isset($value[0])) {
                         $value = [$value];
                     }
                     foreach ($value as $val) {
-                        $data[] = [
-                            $path->getUriPath(),
-                            $operation->getHttpMethod(),
+                        if (!isset($data[$path->getUriPath()])) {
+                            $data[$path->getUriPath()] = [];
+                        }
+                        if (!isset($data[$path->getUriPath()][$operation->getHttpMethod()])) {
+                            $data[$path->getUriPath()][$operation->getHttpMethod()] = [];
+                        }
+
+                        $data[$path->getUriPath()][$operation->getHttpMethod()][] = [
                             $key,
                             $val['v'],
                             $val['d'],
-                            $val['x']
+                            $val['x'],
                         ];
                     }
                 }
@@ -55,8 +61,27 @@ class Printer
 
         $output = new ConsoleOutput();
         $table  = new Table($output);
-        $table->setHeaders(['Path', 'HTTP Method', 'Parameter', 'Type', 'Documented', 'Executed']);
-        $table->addRows($data);
+        $table->setStyle('box');
+        $table->setHeaders(['Path', 'HTTP Method', 'Element', 'Type', 'Documented', 'Executed']);
+        foreach ($data as $path => $operations) {
+            foreach ($operations as $operation => $params) {
+                foreach ($params as $i => $param) {
+                    if ($i === 0) {
+                        $table->addRow(
+                            array_merge(
+                                [
+                                    new TableCell($path, ['rowspan' => count($params)]),
+                                    new TableCell($operation, ['rowspan' => count($params)]),
+                                ],
+                                $param
+                            )
+                        );
+                    } else {
+                        $table->addRow($param);
+                    }
+                }
+            }
+        }
         $table->render();
     }
 
