@@ -39,6 +39,19 @@ class Operation extends CoverageElement
     }
 
     /**
+     * @param string $name
+     *
+     * @return Parameter[]
+     */
+    public function findPathParameters(string $name): array
+    {
+        return array_filter(
+            $this->pathParameters,
+            static fn(Parameter $parameter) => $parameter->getName() === $name
+        );
+    }
+
+    /**
      * @return Parameter[]
      */
     public function getQueryParameters(): array
@@ -90,13 +103,15 @@ class Operation extends CoverageElement
         return $this;
     }
 
-    public function findQueryParameter(string $queryParameterName, TypeAbstract $queryParameterType): ?Parameter
+    public function findQueryParameter(string $queryParameterName, ?TypeAbstract $queryParameterType = null): ?Parameter
     {
         foreach ($this->queryParameters as $queryParameter) {
             if (
                 $queryParameter->getName() === $queryParameterName
-                &&
-                get_class($queryParameter->getType()) === get_class($queryParameterType)
+                && (
+                    $queryParameterType === null
+                    || get_class($queryParameter->getType()) === get_class($queryParameterType)
+                )
             ) {
                 return $queryParameter;
             }

@@ -82,6 +82,9 @@ class Printer
                 }
             }
         }
+
+        echo "\n";
+        ob_flush();
         $table->render();
     }
 

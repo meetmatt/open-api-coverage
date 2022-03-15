@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace MeetMatt\OpenApiSpecCoverage\Test\Suite\Integration\Specification;
 
 use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
-use MeetMatt\OpenApiSpecCoverage\Test\Support\TestCase;
+use MeetMatt\OpenApiSpecCoverage\Test\Support\CoverageTestCase;
 
-class FactoryTest extends TestCase
+class FactoryCoverageTest extends CoverageTestCase
 {
     private Specification $specification;
 
