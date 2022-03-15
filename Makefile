@@ -1,7 +1,8 @@
-test: unit-test integration-test
+.PHONY: all
+all:
+	$(MAKE) test suite=unit
 
-unit-test:
-	XDEBUG_MODE=$(debug),coverage XDEBUG_SESSION=1 ./vendor/bin/codecept run unit $(params) $(coverage) $(test)
+.PHONY: test
+test:
+	XDEBUG_MODE=$(debug),coverage XDEBUG_SESSION=1 ./vendor/bin/codecept run $(suite) $(test) $(params) $(coverage)
 
-integration-test:
-	XDEBUG_MODE=$(debug),coverage XDEBUG_SESSION=1 ./vendor/bin/codecept run integration $(params) $(coverage) $(test)

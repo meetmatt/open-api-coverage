@@ -41,7 +41,7 @@ class RequestBodyCoverageTest extends CoverageTestCase
             $this->recordHttpCall('post', 'http://server/pets', 201, [], $body);
         }
 
-        $spec = $this->coverage->process($this->container->specFilePost(), $this->recorder);
+        $spec = $this->coverage->process($this->container->getSpecFile('petstore_post.yaml'), $this->recorder);
 
         $path = $spec->path('/pets');
         $this->assertTrue($path->isDocumented());

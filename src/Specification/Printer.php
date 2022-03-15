@@ -15,7 +15,16 @@ class Printer
         $data = [];
 
         foreach ($specification->getPaths() as $path) {
+            $uriPath = $path->getUriPath();
+            if (!isset($data[$uriPath])) {
+                $data[$uriPath] = [];
+            }
             foreach ($path->getOperations() as $operation) {
+                $httpMethod = $operation->getHttpMethod();
+                if (!isset($data[$uriPath][$httpMethod])) {
+                    $data[$uriPath][$httpMethod] = [];
+                }
+
                 $types = [];
                 foreach ($operation->getPathParameters() as $parameter) {
                     $types += self::flattenTypeTree('path.' . $parameter->getName(), $parameter->getType());
@@ -41,14 +50,7 @@ class Printer
                         $value = [$value];
                     }
                     foreach ($value as $val) {
-                        if (!isset($data[$path->getUriPath()])) {
-                            $data[$path->getUriPath()] = [];
-                        }
-                        if (!isset($data[$path->getUriPath()][$operation->getHttpMethod()])) {
-                            $data[$path->getUriPath()][$operation->getHttpMethod()] = [];
-                        }
-
-                        $data[$path->getUriPath()][$operation->getHttpMethod()][] = [
+                        $data[$uriPath][$httpMethod][] = [
                             $key,
                             $val['v'],
                             $val['d'],
@@ -65,20 +67,15 @@ class Printer
         $table->setHeaders(['Path', 'HTTP Method', 'Element', 'Type', 'Documented', 'Executed']);
         foreach ($data as $path => $operations) {
             foreach ($operations as $operation => $params) {
-                foreach ($params as $i => $param) {
-                    if ($i === 0) {
-                        $table->addRow(
-                            array_merge(
-                                [
-                                    new TableCell($path, ['rowspan' => count($params)]),
-                                    new TableCell($operation, ['rowspan' => count($params)]),
-                                ],
-                                $param
-                            )
-                        );
-                    } else {
-                        $table->addRow($param);
-                    }
+                $table->addRow(
+                    [
+                        new TableCell($path, ['rowspan' => count($params) + 1]),
+                        new TableCell($operation, ['rowspan' => count($params) + 1]),
+                    ]
+                );
+
+                foreach ($params as $param) {
+                    $table->addRow($param);
                 }
             }
         }
@@ -143,7 +140,7 @@ class Printer
             }
         } elseif ($type instanceof TypeObject) {
             foreach ($type->getProperties() as $property) {
-                $propertyPrefix    = $name . '.' . $property->getName();
+                $propertyPrefix = $name . '.' . $property->getName();
                 $flattenedProperty = self::flattenTypeTree($propertyPrefix, $property->getType());
                 foreach ($flattenedProperty as $key => $value) {
                     if (isset($value['v'])) {

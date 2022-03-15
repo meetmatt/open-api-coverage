@@ -1,0 +1,57 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Open API Spec Coverage - Path Coverage
+servers:
+  - url: http://server
+paths:
+  /resource/{stringEnum}/{numberEnum}/{integerEnum}/{string}/{number}/{integer}:
+    get:
+      description: Path with multiple path parameters.
+      parameters:
+        - name: stringEnum
+          in: path
+          description: String enum path parameter.
+          schema:
+            type: string
+            enum:
+              - blue
+              - green
+              - uncovered
+        - name: numberEnum
+          in: path
+          description: Number enum path parameter.
+          schema:
+            type: number
+            enum:
+              - 3.14
+              - 2.71
+              - 99.99
+        - name: integerEnum
+          in: path
+          description: Integer enum path parameter.
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 99
+        - name: string
+          in: path
+          description: String path parameter.
+          schema:
+            type: string
+        - name: number
+          in: path
+          description: Number path parameter.
+          schema:
+            type: number
+        - name: integer
+          in: path
+          description: Integer path parameter.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Response
+          content: { }

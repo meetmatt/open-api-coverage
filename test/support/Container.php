@@ -11,19 +11,9 @@ use MeetMatt\OpenApiSpecCoverage\OpenApi\OpenApiSpecificationParser;
 
 class Container
 {
-    public function specFile(): string
+    public function getSpecFile(string $name): string
     {
-        return codecept_data_dir('petstore.yaml');
-    }
-
-    public function specFileGet(): string
-    {
-        return codecept_data_dir('petstore_get.yaml');
-    }
-
-    public function specFilePost(): string
-    {
-        return codecept_data_dir('petstore_post.yaml');
+        return codecept_data_dir($name);
     }
 
     public function factory(): OpenApiFactory

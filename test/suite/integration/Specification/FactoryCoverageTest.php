@@ -15,7 +15,7 @@ class FactoryCoverageTest extends CoverageTestCase
     {
         $factory = $this->container->factory();
 
-        $this->specification = $factory->fromFile($this->container->specFile());
+        $this->specification = $factory->fromFile($this->container->getSpecFile('petstore.yaml'));
     }
 
     public function testFindPath(): void

@@ -36,7 +36,7 @@ class QueryStringCoverageTest extends CoverageTestCase
             $this->recordHttpCall('get', 'http://server/pets', 200, $queryParams);
         }
 
-        $spec = $this->coverage->process($this->container->specFileGet(), $this->recorder);
+        $spec = $this->coverage->process($this->container->getSpecFile('petstore_get.yaml'), $this->recorder);
 
         $path = $spec->path('/pets');
         $get  = $path->operation('get');

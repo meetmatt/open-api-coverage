@@ -59,7 +59,7 @@ class CoverageTestCase extends TestCase
     protected function recordHttpCall(
         string $method,
         string $uri,
-        int $statusCode,
+        int $statusCode = 200,
         array $queryParams = [],
         array $content = null,
         array $headers = []
