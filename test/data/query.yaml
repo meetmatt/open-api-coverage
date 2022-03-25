@@ -41,6 +41,72 @@ paths:
           in: query
           schema:
             type: integer
+        - name: EnumString
+          in: query
+          schema:
+            type: string
+            enum:
+              - one
+              - two
+        - name: EnumNumber
+          in: query
+          schema:
+            type: number
+            enum:
+              - 1.1
+              - 2.2
+        - name: EnumInteger
+          in: query
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+        - name: ArrayString
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: ArrayNumber
+          in: query
+          schema:
+            type: array
+            items:
+              type: number
+        - name: ArrayInteger
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: ArrayEnumString
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - one
+                - two
+        - name: ArrayEnumNumber
+          in: query
+          schema:
+            type: array
+            items:
+              type: number
+              enum:
+                - 1.1
+                - 2.2
+        - name: ArrayEnumInteger
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              enum:
+                - 1
+                - 2
         - name: UcoveredString
           in: query
           schema:
@@ -53,6 +119,72 @@ paths:
           in: query
           schema:
             type: integer
+        - name: UcoveredEnumString
+          in: query
+          schema:
+            type: string
+            enum:
+              - one
+              - two
+        - name: UcoveredEnumNumber
+          in: query
+          schema:
+            type: number
+            enum:
+              - 1.1
+              - 2.2
+        - name: UcoveredEnumInteger
+          in: query
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+        - name: UcoveredArrayString
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: UcoveredArrayNumber
+          in: query
+          schema:
+            type: array
+            items:
+              type: number
+        - name: UcoveredArrayInteger
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: UcoveredArrayEnumString
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - one
+                - two
+        - name: UcoveredArrayEnumNumber
+          in: query
+          schema:
+            type: array
+            items:
+              type: number
+              enum:
+                - 1.1
+                - 2.2
+        - name: UcoveredArrayEnumInteger
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              enum:
+                - 1
+                - 2
       responses:
         200:
           description: Response
@@ -87,6 +219,18 @@ components:
             - 1
             - 2
             - 9
+        ArrayString:
+          type: array
+          items:
+            type: string
+        ArrayNumber:
+          type: array
+          items:
+            type: number
+        ArrayInteger:
+          type: array
+          items:
+            type: integer
         ArrayEnumString:
           type: array
           items:
