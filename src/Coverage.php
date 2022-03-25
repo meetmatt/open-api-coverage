@@ -230,7 +230,7 @@ class Coverage
                     $this->markAsExecuted($specType);
 
                     return true;
-                };
+                }
             } elseif ($specType instanceof TypeEnum) {
                 if ($this->compareTypes($passedType, $specType->getType())) {
                     if ($passedType->getValue() !== null) {
@@ -306,7 +306,7 @@ class Coverage
             return true;
         }
 
-        return preg_match('/^\d+$/', $value) === 1;
+        return preg_match('/^\d+$/', (string)$value) === 1;
     }
 
     private function isFloatish($value): bool
@@ -318,7 +318,7 @@ class Coverage
         // Works properly only in PHP >= 8.0
         // return (float)$value == $value;
 
-        return preg_match('/(0|[1-9]+)?\.\d*/', $value) === 1;
+        return preg_match('/(0|[1-9]+)?\.\d*/', (string)$value) === 1;
     }
 
     private function markAsUndocumented(TypeAbstract $type): void

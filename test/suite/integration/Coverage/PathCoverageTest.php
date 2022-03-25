@@ -12,117 +12,72 @@ class PathCoverageTest extends CoverageTestCase
     {
         $params = [
             [
-                'stringEnum'  => 'blue',
-                'numberEnum'  => 3.14,
-                'integerEnum' => 1,
-                'string'      => 'what',
-                'number'      => 0.1234,
-                'integer'     => 50,
+                'String'      => 'one',
+                'Number'      => 1.1,
+                'Integer'     => 1,
+                'EnumString'  => 'one',
+                'EnumNumber'  => 1.1,
+                'EnumInteger' => 1,
             ],
             [
-                'stringEnum'  => 'green',
-                'numberEnum'  => 2.71,
-                'integerEnum' => 2,
-                'string'      => 'where',
-                'number'      => 45.67,
-                'integer'     => 100,
+                'String'      => 'two',
+                'Number'      => 2.2,
+                'Integer'     => 2,
+                'EnumString'  => 'two',
+                'EnumNumber'  => 2.2,
+                'EnumInteger' => 2,
             ],
             [
-                'stringEnum'  => 'undocumented',
-                'numberEnum'  => 0.01,
-                'integerEnum' => 100,
-                'string'      => 'whatever',
-                'number'      => 789,
-                'integer'     => 200,
+                'String'      => 'three',
+                'Number'      => 3.3,
+                'Integer'     => 3,
+                'EnumString'  => 'three',
+                'EnumNumber'  => 3.3,
+                'EnumInteger' => 3,
+            ],
+            [
+                'String'              => 'four',
+                'Number'              => 4.4,
+                'Integer'             => 4,
+                'EnumString'          => 'four',
+                'EnumNumber'          => 4.4,
+                'EnumInteger'         => 4,
+                'UndocumentedString'  => 'five',
+                'UndocumentedNumber'  => 5.5,
+                'UndocumentedInteger' => 5,
             ],
         ];
 
         foreach ($params as $param) {
-            $path = implode('/', [
-                $param['stringEnum'],
-                $param['numberEnum'],
-                $param['integerEnum'],
-                $param['string'],
-                $param['number'],
-                $param['integer'],
-            ]);
-
-            $uri = 'http://server/resource/' . $path;
-
-            $this->recordHttpCall('get', $uri);
+            $this->recordHttpCall('get', 'http://server/resource/' . implode('/', array_values($param)));
         }
 
         $spec = $this->coverage->process($this->container->getSpecFile('path.yaml'), $this->recorder);
 
         $paths = $spec->getPaths();
-        $this->assertCount(2, $paths);
+        $this->assertCount(3, $paths);
 
-        $pets = $spec->path('/resource/{stringEnum}/{numberEnum}/{integerEnum}/{string}/{number}/{integer}');
-        $this->assertNotNull($pets);
-        $this->assertSame($pets, $paths[0]);
+        $path = $spec->path('/resource/{String}/{Number}/{Integer}/{EnumString}/{EnumNumber}/{EnumInteger}');
+        $this->assertNotNull($path);
+        $this->assertSame($path, $paths[0]);
 
-        $getPets = $pets->operation('get');
-        $this->assertNotNull($getPets);
+        $get = $path->operation('get');
+        $this->assertNotNull($get);
 
-        $stringEnum = $getPets->findPathParameters('stringEnum');
-        $this->assertCount(1, $stringEnum);
-        $stringEnum = current($stringEnum);
-        $this->assertDocumented($stringEnum);
-        $this->assertExecuted($stringEnum);
+        $this->assertScalarPathParameter($get, 'String');
+        $this->assertScalarPathParameter($get, 'Number');
+        $this->assertScalarPathParameter($get, 'Integer');
 
-        $numberEnum = $getPets->findPathParameters('numberEnum');
-        $this->assertCount(1, $numberEnum);
-        $numberEnum = current($numberEnum);
-        $this->assertDocumented($numberEnum);
-        $this->assertExecuted($numberEnum);
+        $this->assertEnumPathParameter($get, 'EnumString', ['one', 'two'], ['uncovered']);
+        $this->assertEnumPathParameter($get, 'EnumNumber', [1.1, 2.2], [9.9]);
+        $this->assertEnumPathParameter($get, 'EnumInteger', [1, 2], [9]);
 
-        $integerEnum = $getPets->findPathParameters('integerEnum');
-        $this->assertCount(1, $integerEnum);
-        $integerEnum = current($integerEnum);
-        $this->assertDocumented($integerEnum);
-        $this->assertExecuted($integerEnum);
-
-        $string = $getPets->findPathParameters('string');
-        $this->assertCount(1, $string);
-        $string = current($string);
-        $this->assertDocumented($string);
-        $this->assertExecuted($string);
-
-        $number = $getPets->findPathParameters('number');
-        $this->assertCount(1, $number);
-        $number = current($number);
-        $this->assertDocumented($number);
-        $this->assertExecuted($number);
-
-        $integer = $getPets->findPathParameters('integer');
-        $this->assertCount(1, $integer);
-        $integer = current($integer);
-        $this->assertDocumented($integer);
-        $this->assertExecuted($integer);
-
-
-        $undocumented = $spec->path('/resource/undocumented/0.01/100/whatever/789/200');
-        $this->assertNotNull($undocumented);
-        $this->assertNotDocumented($undocumented);
+        $undocumented = $spec->path('/resource/three/3.3/3/three/3.3/3');
         $this->assertExecuted($undocumented);
-        $this->assertEmpty($undocumented->operation('get')->getPathParameters());
+        $this->assertNotDocumented($undocumented);
 
-        $this->printer->print($spec);
-        // TODO: add more asserts
-
-        /*─────────────┬─────────────┬────────────────────────┬──────────────────────────────────────┬────────────┬──────────┐
-        │ Path         │ HTTP Method │ Element                │ Type                                 │ Documented │ Executed │
-        ├──────────────┼─────────────┼────────────────────────┼──────────────────────────────────────┼────────────┼──────────┤
-        │ /pets/{type} │ get         │ path.type              │ <string>['blue','green']             │ +          │ +        │
-        │              │             │ path.type              │ <string>['uncovered']                │ +          │ -        │
-        │              │             │ query.tags[]           │ <string>['funny','cute','uncovered'] │ +          │ -        │
-        │              │             │ query.filter.name      │ <string>                             │ +          │ -        │
-        │              │             │ query.filter.age       │ <number>                             │ +          │ -        │
-        │              │             │ query.filter.uncovered │ <string>                             │ +          │ -        │
-        │              │             │ query.limit            │ <integer>                            │ +          │ -        │
-        │              │             │ query.uncovered        │ <string>                             │ +          │ -        │
-        └──────────────┴─────────────┴────────────────────────┴──────────────────────────────────────┴────────────┴──────────*/
-
-
+        $undocumented = $spec->path('/resource/four/4.4/4/four/4.4/4/five/5.5/5');
+        $this->assertExecuted($undocumented);
+        $this->assertNotDocumented($undocumented);
     }
 }

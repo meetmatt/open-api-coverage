@@ -1,0 +1,113 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Open API Spec Coverage - Query Coverage
+servers:
+  - url: http://server
+paths:
+  /resource:
+    get:
+      description: Path with multiple query parameters.
+      parameters:
+        - name: ArrayObjectPHP[]
+          in: query
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/Object'
+        - name: ArrayObject
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Object'
+        - name: DeepObject
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            $ref: '#/components/schemas/Object'
+        - name: String
+          in: query
+          schema:
+            type: string
+        - name: Number
+          in: query
+          schema:
+            type: number
+        - name: Integer
+          in: query
+          schema:
+            type: integer
+        - name: UcoveredString
+          in: query
+          schema:
+            type: string
+        - name: UcoveredNumber
+          in: query
+          schema:
+            type: number
+        - name: UcoveredInteger
+          in: query
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Response
+          content: { }
+
+components:
+  schemas:
+    Object:
+      type: object
+      properties:
+        String:
+          type: string
+        Number:
+          type: number
+        Integer:
+          type: number
+        EnumString:
+          type: string
+          enum:
+            - one
+            - two
+            - uncovered
+        EnumNumber:
+          type: number
+          enum:
+            - 1.1
+            - 2.2
+            - 9.9
+        EnumInteger:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 9
+        ArrayEnumString:
+          type: array
+          items:
+            type: string
+            enum:
+              - one
+              - two
+              - uncovered
+        ArrayEnumNumber:
+          type: array
+          items:
+            type: number
+            enum:
+              - 1.1
+              - 2.2
+              - 9.9
+        ArrayEnumInteger:
+          type: array
+          items:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 9

@@ -9,7 +9,11 @@ use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
 use MeetMatt\OpenApiSpecCoverage\Coverage;
 use MeetMatt\OpenApiSpecCoverage\Specification\CoverageElement;
+use MeetMatt\OpenApiSpecCoverage\Specification\Operation;
+use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
 use MeetMatt\OpenApiSpecCoverage\Specification\Printer;
+use MeetMatt\OpenApiSpecCoverage\Specification\TypeEnum;
+use MeetMatt\OpenApiSpecCoverage\Specification\TypeScalar;
 use MeetMatt\OpenApiSpecCoverage\TestRecorder\TestRecorder;
 
 class CoverageTestCase extends TestCase
@@ -54,6 +58,39 @@ class CoverageTestCase extends TestCase
     protected function assertNotExecuted(CoverageElement $element): void
     {
         $this->assertFalse($element->isExecuted());
+    }
+
+    protected function assertPathParameter(Operation $operation, string $paramName): Parameter
+    {
+        $params = $operation->findPathParameters($paramName);
+
+        $this->assertCount(1, $params);
+
+        return current($params);
+    }
+
+    protected function assertScalarPathParameter(Operation $operation, string $paramName): void
+    {
+        $param = $this->assertPathParameter($operation, $paramName);
+
+        /** @var TypeScalar $paramType */
+        $paramType = $param->getType();
+        $this->assertExecuted($paramType);
+        $this->assertDocumented($paramType);
+    }
+
+    protected function assertEnumPathParameter(Operation $operation, string $paramName, array $documented, array $uncovered): void
+    {
+        $param = $this->assertPathParameter($operation, $paramName);
+
+        /** @var TypeEnum $paramType */
+        $paramType = $param->getType();
+        $this->assertExecuted($paramType);
+        $this->assertDocumented($paramType);
+
+        $this->assertEquals($documented, $paramType->getDocumentedExecutedEnum());
+        $this->assertEquals($uncovered, $paramType->getNonExecutedEnum());
+        $this->assertEmpty($paramType->getUndocumentedEnum());
     }
 
     protected function recordHttpCall(

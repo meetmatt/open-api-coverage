@@ -1,0 +1,97 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Open API Spec Coverage - Query Coverage
+servers:
+  - url: http://server
+paths:
+  /resource:
+    get:
+      description: Request to fetch list of objects
+      responses:
+        200:
+          description: Object list response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Object'
+  /resource/{id}:
+    get:
+      description: Request to fetch one object
+      responses:
+        200:
+          description: Object response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Object'
+        404:
+          description: Object not found
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  schemas:
+    Object:
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+        - $ref: '#/components/schemas/NewObject'
+    NewObject:
+      type: object
+      properties:
+        String:
+          type: string
+        Number:
+          type: number
+        Integer:
+          type: number
+        EnumString:
+          type: string
+          enum:
+            - one
+            - two
+            - uncovered
+        EnumNumber:
+          type: number
+          enum:
+            - 1.1
+            - 2.2
+            - 9.9
+        EnumInteger:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 9
+        ArrayEnumString:
+          type: array
+          items:
+            type: string
+            enum:
+              - one
+              - two
+              - uncovered
+        ArrayEnumNumber:
+          type: array
+          items:
+            type: number
+            enum:
+              - 1.1
+              - 2.2
+              - 9.9
+        ArrayEnumInteger:
+          type: array
+          items:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 9

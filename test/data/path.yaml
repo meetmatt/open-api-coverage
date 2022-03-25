@@ -5,29 +5,44 @@ info:
 servers:
   - url: http://server
 paths:
-  /resource/{stringEnum}/{numberEnum}/{integerEnum}/{string}/{number}/{integer}:
+  /resource/{String}/{Number}/{Integer}/{EnumString}/{EnumNumber}/{EnumInteger}:
     get:
       description: Path with multiple path parameters.
       parameters:
-        - name: stringEnum
+        - name: String
+          in: path
+          description: String path parameter.
+          schema:
+            type: string
+        - name: Number
+          in: path
+          description: Number path parameter.
+          schema:
+            type: number
+        - name: Integer
+          in: path
+          description: Integer path parameter.
+          schema:
+            type: integer
+        - name: EnumString
           in: path
           description: String enum path parameter.
           schema:
             type: string
             enum:
-              - blue
-              - green
+              - one
+              - two
               - uncovered
-        - name: numberEnum
+        - name: EnumNumber
           in: path
           description: Number enum path parameter.
           schema:
             type: number
             enum:
-              - 3.14
-              - 2.71
-              - 99.99
-        - name: integerEnum
+              - 1.1
+              - 2.2
+              - 9.9
+        - name: EnumInteger
           in: path
           description: Integer enum path parameter.
           schema:
@@ -35,22 +50,7 @@ paths:
             enum:
               - 1
               - 2
-              - 99
-        - name: string
-          in: path
-          description: String path parameter.
-          schema:
-            type: string
-        - name: number
-          in: path
-          description: Number path parameter.
-          schema:
-            type: number
-        - name: integer
-          in: path
-          description: Integer path parameter.
-          schema:
-            type: integer
+              - 9
       responses:
         200:
           description: Response

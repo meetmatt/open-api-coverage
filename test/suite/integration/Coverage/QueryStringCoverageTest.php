@@ -12,120 +12,54 @@ class QueryStringCoverageTest extends CoverageTestCase
     {
         $params = [
             [
-                'tags' => [
-                    'funny',
-                    'cute',
-                ],
+                'String'      => 'one',
+                'Number'      => 1.1,
+                'Integer'     => 1,
+                'EnumString'  => 'one',
+                'EnumNumber'  => 1.1,
+                'EnumInteger' => 1,
             ],
             [
-                'tags'  => [
-                    'undocumented',
-                ],
-                'limit' => 100,
+                'String'      => 'two',
+                'Number'      => 2.2,
+                'Integer'     => 2,
+                'EnumString'  => 'two',
+                'EnumNumber'  => 2.2,
+                'EnumInteger' => 2,
             ],
             [
-                'filter' => [
-                    'name'         => 'Kitty',
-                    'age'          => 5,
-                    'undocumented' => 'black',
-                ],
+                'String'      => 'three',
+                'Number'      => 3.3,
+                'Integer'     => 3,
+                'EnumString'  => 'three',
+                'EnumNumber'  => 3.3,
+                'EnumInteger' => 3,
+            ],
+            [
+                'String'              => 'four',
+                'Number'              => 4.4,
+                'Integer'             => 4,
+                'EnumString'          => 'four',
+                'EnumNumber'          => 4.4,
+                'EnumInteger'         => 4,
+                'UndocumentedString'  => 'five',
+                'UndocumentedNumber'  => 5.5,
+                'UndocumentedInteger' => 5,
             ],
         ];
 
         foreach ($params as $queryParams) {
-            $this->recordHttpCall('get', 'http://server/pets', 200, $queryParams);
+            $this->recordHttpCall('get', 'http://server/resource', 200, $queryParams);
         }
 
-        $spec = $this->coverage->process($this->container->getSpecFile('petstore_get.yaml'), $this->recorder);
+        $spec = $this->coverage->process($this->container->getSpecFile('query.yaml'), $this->recorder);
 
-        $path = $spec->path('/pets');
-        $get  = $path->operation('get');
-
+        $path = $spec->path('/resource');
         $this->assertNotNull($path);
-        $this->assertNotNull($get);
-        $this->assertNotEmpty($get->getQueryParameters());
-        $this->assertNotNull($get->findQueryParameter('tags'));
-        $this->assertNotNull($get->findQueryParameter('limit'));
-        $this->assertNotNull($get->findQueryParameter('filter'));
 
-        // TODO: add more asserts
+        $get = $path->operation('get');
+        $this->assertNotNull($get);
 
         $this->printer->print($spec);
-    }
-
-    private function getQueryParameters(): array
-    {
-        return [
-            // name: tags[], style: form, explode: true
-            // type: array, items: type: string, enum: [funny, sleepy, cute]
-            'tags'     => [
-                0 => 'funny',
-                1 => 'sleepy',
-                2 => 'cute',
-                3 => 'undocumented',
-            ],
-            // alternative:
-            // 'tags'   => [
-            //     'funny',
-            //     'sleepy',
-            //     'cute',
-            //     'undocumented',
-            // ],
-            'family'   => [
-                'cat',
-                'dog',
-                'undocumented',
-            ],
-            'criteria' => [
-                [
-                    'field'           => 'name',
-                    'op'              => [
-                        'type'   => 'eq',
-                        'negate' => 0,
-                    ],
-                    'value'           => '',
-                    'listPropEnum'    => [
-                        'first',
-                        'second',
-                    ],
-                    'listPropNumbers' => [1, 2, 3],
-                ],
-                [
-                    'field'           => 'family',
-                    'op'              => [
-                        'type'   => 'like',
-                        'negate' => 1,
-                    ],
-                    'value'           => '',
-                    'undocumented'    => 99,
-                    'listPropEnum'    => [
-                        'first',
-                        'undocumented',
-                    ],
-                    'listPropNumbers' => [],
-                ],
-                [
-                    'field'           => 'undocumented',
-                    'op'              => [
-                        'type'   => 'undocumented',
-                        'negate' => 3,
-                    ],
-                    'value'           => '',
-                    'undocumented'    => 99,
-                    'listPropEnum'    => [
-                        'first',
-                        'undocumented',
-                    ],
-                    'listPropNumbers' => [],
-                ],
-            ],
-            'object'   => [
-                'firstKey'     => 'qwerty',
-                'secondKey'    => 'qwerty',
-                'undocumented' => 'qwerty',
-            ],
-            'limit'    => 100,
-            // uncovered
-        ];
     }
 }
