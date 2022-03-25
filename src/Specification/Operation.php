@@ -60,6 +60,19 @@ class Operation extends CoverageElement
     }
 
     /**
+     * @param string $name
+     *
+     * @return Parameter[]
+     */
+    public function findQueryParameters(string $name): array
+    {
+        return array_filter(
+            $this->queryParameters,
+            static fn(Parameter $parameter) => $parameter->getName() === $name
+        );
+    }
+
+    /**
      * @return RequestBody[]
      */
     public function getRequestBodies(): array

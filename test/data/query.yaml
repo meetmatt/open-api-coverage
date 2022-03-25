@@ -23,7 +23,7 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/Object'
-        - name: DeepObject
+        - name: Object
           in: query
           style: deepObject
           explode: true

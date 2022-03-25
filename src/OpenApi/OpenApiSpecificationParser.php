@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\OpenApi;
 
-use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Operation as OpenApiOperation;
 use MeetMatt\OpenApiSpecCoverage\Specification\Content;
 use MeetMatt\OpenApiSpecCoverage\Specification\Operation;
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
-use MeetMatt\OpenApiSpecCoverage\Specification\Path;
-use MeetMatt\OpenApiSpecCoverage\Specification\Property;
 use MeetMatt\OpenApiSpecCoverage\Specification\RequestBody;
 use MeetMatt\OpenApiSpecCoverage\Specification\Response;
+use MeetMatt\OpenApiSpecCoverage\Specification\TypeArray;
 
 class OpenApiSpecificationParser
 {
@@ -31,11 +29,15 @@ class OpenApiSpecificationParser
 
         foreach ($openApiOperation->parameters as $openApiParameter) {
             $name = $openApiParameter->name;
-            if (strpos($name, '[]') !== false) {
-                $name = str_replace('[]', '', $name);
+            $type = $this->parser->parse($openApiParameter->schema);
+
+            // force array type for parameters that end with []
+            while (preg_match('/\[]$/', $name)) {
+                $name = preg_replace('/\[]$/', '', $name);
+                $type = new TypeArray($type);
             }
 
-            $parameter = new Parameter($name, $this->parser->parse($openApiParameter->schema));
+            $parameter = new Parameter($name, $type);
 
             if ($openApiParameter->in === 'query') {
                 $operation->addQueryParameter($parameter);
@@ -85,8 +87,7 @@ class OpenApiSpecificationParser
 
             if (
                 !isset($openApiResponseContent->schema->properties)
-                ||
-                !is_iterable($openApiResponseContent->schema->properties)
+                || !is_iterable($openApiResponseContent->schema->properties)
             ) {
                 continue;
             }

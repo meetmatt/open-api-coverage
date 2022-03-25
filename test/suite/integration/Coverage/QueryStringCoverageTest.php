@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Test\Suite\Integration\Coverage;
 
+use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
+use MeetMatt\OpenApiSpecCoverage\Specification\TypeArray;
 use MeetMatt\OpenApiSpecCoverage\Test\Support\CoverageTestCase;
 
 class QueryStringCoverageTest extends CoverageTestCase
@@ -61,5 +63,13 @@ class QueryStringCoverageTest extends CoverageTestCase
         $this->assertNotNull($get);
 
         $this->printer->print($spec);
+
+        $arrayObjectPhp = $get->findQueryParameters('ArrayObjectPHP');
+        $this->assertCount(1, $arrayObjectPhp);
+        /** @var Parameter $arrayObjectPhp */
+        $arrayObjectPhp = current($arrayObjectPhp);
+        $this->assertDocumented($arrayObjectPhp);
+        $this->assertDocumented($arrayObjectPhp->getType());
+        $this->assertInstanceOf(TypeArray::class, $arrayObjectPhp->getType());
     }
 }
