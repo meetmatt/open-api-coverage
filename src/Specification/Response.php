@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class Response
+class Response extends CoverageElement
 {
     private string $httpStatusCode;
 

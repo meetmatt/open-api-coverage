@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\OpenApi;
 
+use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Operation as OpenApiOperation;
 use MeetMatt\OpenApiSpecCoverage\Specification\Content;
 use MeetMatt\OpenApiSpecCoverage\Specification\Operation;
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
 use MeetMatt\OpenApiSpecCoverage\Specification\RequestBody;
 use MeetMatt\OpenApiSpecCoverage\Specification\Response;
+use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeArray;
 
 class OpenApiSpecificationParser
@@ -21,7 +23,27 @@ class OpenApiSpecificationParser
         $this->parser = $parser;
     }
 
-    public function parseParameters(Operation $operation, OpenApiOperation $openApiOperation): void
+    public function parsePaths(OpenApi $openApi): Specification
+    {
+        $specification = new Specification();
+
+        foreach ($openApi->paths as $uriPath => $spec) {
+            $path = $specification->addPath($uriPath);
+            $path->documented();
+            foreach ($spec->getOperations() as $httpMethod => $openApiOperation) {
+                $operation = $path->addOperation($httpMethod);
+                $operation->documented();
+
+                $this->parseParameters($operation, $openApiOperation);
+                $this->parseRequests($operation, $openApiOperation);
+                $this->parseResponses($operation, $openApiOperation);
+            }
+        }
+
+        return $specification;
+    }
+
+    private function parseParameters(Operation $operation, OpenApiOperation $openApiOperation): void
     {
         if (!isset($openApiOperation->parameters) || !is_iterable($openApiOperation->parameters)) {
             return;
@@ -30,14 +52,17 @@ class OpenApiSpecificationParser
         foreach ($openApiOperation->parameters as $openApiParameter) {
             $name = $openApiParameter->name;
             $type = $this->parser->parse($openApiParameter->schema);
+            $type->documented();
 
             // force array type for parameters that end with []
             while (preg_match('/\[]$/', $name)) {
                 $name = preg_replace('/\[]$/', '', $name);
                 $type = new TypeArray($type);
+                $type->documented();
             }
 
             $parameter = new Parameter($name, $type);
+            $parameter->documented();
 
             if ($openApiParameter->in === 'query') {
                 $operation->addQueryParameter($parameter);
@@ -49,7 +74,7 @@ class OpenApiSpecificationParser
         }
     }
 
-    public function parseRequests(Operation $operation, OpenApiOperation $openApiOperation): void
+    private function parseRequests(Operation $operation, OpenApiOperation $openApiOperation): void
     {
         if (!isset($openApiOperation->requestBody->content) || !is_iterable($openApiOperation->requestBody->content)) {
             return;
@@ -57,11 +82,12 @@ class OpenApiSpecificationParser
 
         foreach ($openApiOperation->requestBody->content as $contentType => $mediaType) {
             $specRequestBody = new RequestBody($contentType, $this->parser->parse($mediaType->schema));
+            $specRequestBody->documented();
             $operation->addRequestBody($specRequestBody);
         }
     }
 
-    public function parseResponses(Operation $operation, OpenApiOperation $openApiOperation): void
+    private function parseResponses(Operation $operation, OpenApiOperation $openApiOperation): void
     {
         if (!isset($openApiOperation->responses) || !is_iterable($openApiOperation->responses)) {
             return;
@@ -69,6 +95,7 @@ class OpenApiSpecificationParser
 
         foreach ($openApiOperation->responses as $httpStatusCode => $openApiResponse) {
             $response = new Response((string)$httpStatusCode);
+            $response->documented();
             $operation->addResponse($response);
 
             if (!isset($openApiResponse->content) || !is_iterable($openApiResponse->content)) {
@@ -83,6 +110,7 @@ class OpenApiSpecificationParser
     {
         foreach ($openApiResponse->content as $contentType => $openApiResponseContent) {
             $content = new Content($contentType);
+            $content->documented();
             $response->addContent($content);
 
             if (

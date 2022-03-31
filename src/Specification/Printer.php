@@ -36,7 +36,7 @@ class Printer
                     $types += self::flattenTypeTree('request.' . $requestBody->getContentType(), $requestBody->getType());
                 }
 
-                // TODO: response contents
+                // TODO: print response contents coverage
                 // foreach ($operation->getResponses() as $response) {
                 //     foreach ($response->getContents() as $responseBody) {
                 //         foreach ($responseBody->getProperties() as $property) {

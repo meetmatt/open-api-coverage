@@ -6,15 +6,15 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 trait CoverageElementTrait
 {
-    protected bool $isDocumented = true;
+    protected bool $isDocumented = false;
 
     protected bool $isExecuted   = false;
 
     protected bool $isAsserted   = false;
 
-    public function undocumented(): self
+    public function documented(): self
     {
-        $this->isDocumented = false;
+        $this->isDocumented = true;
 
         return $this;
     }
@@ -26,7 +26,7 @@ trait CoverageElementTrait
         return $this;
     }
 
-    public function markAsAsserted(): void
+    public function asserted(): void
     {
         $this->isAsserted = true;
     }

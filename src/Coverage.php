@@ -54,7 +54,6 @@ class Coverage
                 $path    = $specification->path($uriPath);
                 if ($path === null) {
                     $path = $specification->addPath($uriPath);
-                    $path->undocumented();
                 }
                 $path->executed();
 
@@ -62,43 +61,33 @@ class Coverage
                 $operation  = $path->operation($httpMethod);
                 if ($operation === null) {
                     $operation = $path->addOperation($httpMethod);
-                    $operation->undocumented();
                     foreach ($operation->getPathParameters() as $pathParameter) {
-                        $this->markAsUndocumented($pathParameter->getType());
-                        $this->markAsExecuted($pathParameter->getType());
+                        $pathParameter->getType()->executed();
                     }
                 }
                 $operation->executed();
 
                 $passedQueryParams = $request->getQueryParams();
                 foreach ($passedQueryParams as $passedParamName => $passedParamValue) {
-                    // Find passed parameter in specification
                     $passedParamType = $this->convertToType($passedParamValue);
                     $specParam       = $operation->findQueryParameter($passedParamName, $passedParamType);
 
                     $passedParamExistsInSpec = $specParam !== null;
 
                     if ($passedParamExistsInSpec) {
-                        // Documented parameter
                         $specParam->executed();
-
-                        $specParamType = $specParam->getType();
-                        $doTypesMatch  = $this->compareTypes($passedParamType, $specParamType);
+                        $doTypesMatch  = $this->compareTypes($passedParamType, $specParam->getType());
                         if (!$doTypesMatch) {
-                            // types don't match, need to add a new undocumented parameter
+                            // types don't match -> new undocumented parameter
                             $passedParamExistsInSpec = false;
                         }
                     }
 
                     if (!$passedParamExistsInSpec) {
-                        // Undocumented parameter
                         $undocumentedQueryParameter = new Parameter($passedParamName, $passedParamType);
                         $operation->addQueryParameter($undocumentedQueryParameter);
-
-                        $undocumentedQueryParameter->undocumented();
                         $undocumentedQueryParameter->executed();
-                        $this->markAsExecuted($passedParamType);
-                        $this->markAsUndocumented($passedParamType);
+                        $passedParamType->executed();
                     }
                 }
 
@@ -121,7 +110,7 @@ class Coverage
                 $contentType = $request->getHeader('Content-Type');
                 $parsedBody  = $request->getParsedBody();
                 if (!empty($contentType) && $parsedBody !== null) {
-                    $passedContent = $this->convertToType($parsedBody)->undocumented();
+                    $passedContent = $this->convertToType($parsedBody);
                     $requestBody   = $operation->findRequestBody($contentType[0]);
 
                     $passedContentExists = $requestBody !== null;
@@ -134,12 +123,11 @@ class Coverage
 
                     if (!$passedContentExists) {
                         $requestBody = new RequestBody($contentType[0], $passedContent);
-                        $requestBody->undocumented();
                         $requestBody->executed();
                         $operation->addRequestBody($requestBody);
                     }
                 }
-                // TODO: response contents
+                // TODO: calculate coverage of response contents
             }
 
             if ($operation === null || $response === null) {
@@ -148,15 +136,15 @@ class Coverage
             }
 
             if ($log instanceof ResponseStatusCodeAssertion) {
-                // TODO: response status code assertion
+                // TODO: calculate coverage of response status code by assertion
             }
 
             if ($log instanceof ResponseContentTypeAssertion) {
-                // TODO: response content type assertion
+                // TODO: calculate coverage of response content type by assertion
             }
 
             if ($log instanceof ResponseContentAssertion) {
-                // TODO: response content assertion
+                // TODO: calculate coverage of response content by assertion
             }
         }
 
@@ -172,7 +160,6 @@ class Coverage
                 return true;
             }
 
-            // array element types don't match -> add a new undocumented element to the spec with a different array type
             return false;
         }
 
@@ -186,9 +173,7 @@ class Coverage
 
             foreach ($specProperties as $specProperty) {
                 foreach ($passedProperties as $passedProperty) {
-                    $passedPropertyName = $passedProperty->getName();
-                    $specPropertyName   = $specProperty->getName();
-                    if ($passedPropertyName === $specPropertyName) {
+                    if ($passedProperty->getName() === $specProperty->getName()) {
                         $passedPropertyType = $passedProperty->getType();
                         $specPropertyType   = $specProperty->getType();
 
@@ -196,7 +181,7 @@ class Coverage
                         $doPropertyTypesMatch = $this->compareTypes($passedPropertyType, $specPropertyType);
                         if ($doPropertyTypesMatch) {
                             $specPropertyType->executed();
-                            unset($undocumentedProperties[$specPropertyName]);
+                            unset($undocumentedProperties[$specProperty->getName()]);
                         }
                     }
                 }
@@ -206,13 +191,10 @@ class Coverage
             /** @var Property[] $undocumentedProperties */
             foreach ($undocumentedProperties as $undocumentedProperty) {
                 $undocumentedProperty->executed();
-                $undocumentedProperty->undocumented();
                 $this->markAsExecuted($undocumentedProperty->getType());
-                $this->markAsUndocumented($undocumentedProperty->getType());
                 $specType->addProperty($undocumentedProperty);
             }
 
-            // Always return true, because we don't want to create a completely new object on the parent, only additional undocumented properties
             return true;
         }
 
@@ -252,43 +234,37 @@ class Coverage
      */
     private function convertToType($value): TypeAbstract
     {
-        if (is_array($value)) {
+        if (empty($value)) {
+            $returnedType = new TypeScalar('string');
+        } elseif (is_array($value)) {
             if ($this->arrayIsList($value)) {
-                // ordinary list
-                // determine the type of array elements by looking at the first element
+                // TODO: multi-type arrays (anyOf, allOf)
+                $firstValue = current($value);
+                $type       = $this->convertToType($firstValue);
 
-                // TODO: edge case: can be an array of mixed types, e.g. strings, floats, arrays ...
-                // it will match to the anyOf type in the specification; this is why TypeArray has multiple TypeAbstracts internally
-
-                $type = !empty($value) ? $this->convertToType(current($value))->executed() : new TypeScalar('string');
-
-                return (new TypeArray($type))->executed();
+                $returnedType = new TypeArray($type);
+            } else {
+                $returnedType = new TypeObject();
+                foreach ($value as $name => $spec) {
+                    $returnedType->addProperty($name, $this->convertToType($spec))->executed();
+                }
             }
-
-            // if array is not a list, then it's an object
-            // associative array is an object
-            $object = (new TypeObject())->executed();
-            foreach ($value as $name => $spec) {
-                $object->addProperty($name, $this->convertToType($spec))->executed();
-            }
-
-            return $object;
+        } elseif ($this->isIntegerish($value)) {
+            $returnedType = new TypeScalar('integer', (int)$value);
+        } elseif ($this->isFloatish($value)) {
+            $returnedType = new TypeScalar('number', (float)$value);
+        } else {
+            $returnedType = new TypeScalar('string', (string)$value);
         }
 
-        if ($this->isIntegerish($value)) {
-            return (new TypeScalar('integer', (int)$value))->executed();
-        }
+        $returnedType->executed();
 
-        if ($this->isFloatish($value)) {
-            return (new TypeScalar('number', (float)$value))->executed();
-        }
-
-        return (new TypeScalar('string', (string)$value))->executed();
+        return $returnedType;
     }
 
     private function arrayIsList(array $array): bool
     {
-        // Can be replaced with array_is_list($array) in PHP 8.1
+        // TODO: Replaced with array_is_list($array) in PHP 8.1
 
         $keys = array_keys($array);
         foreach ($keys as $i => $key) {
@@ -315,18 +291,9 @@ class Coverage
             return true;
         }
 
-        // Works properly only in PHP >= 8.0
-        // return (float)$value == $value;
+        // TODO: Replace with return (float)$value == $value; in PHP 8.0
 
         return preg_match('/(0|[1-9]+)?\.\d*/', (string)$value) === 1;
-    }
-
-    private function markAsUndocumented(TypeAbstract $type): void
-    {
-        $type->undocumented();
-        if ($type instanceof Typed) {
-            $this->markAsUndocumented($type->getType());
-        }
     }
 
     private function markAsExecuted(TypeAbstract $type): void

@@ -8,6 +8,11 @@ use Exception;
 
 class SpecificationException extends Exception
 {
+    public static function unsupportedSpecificationDefinition(string $reason): self
+    {
+        return new self(sprintf('Unsupported Open API specification: %s', $reason));
+    }
+
     public static function pathHasAmbiguousPathParameters(string $uriPath): self
     {
         return new self(sprintf('Path has ambiguous path parameters: %s', $uriPath));

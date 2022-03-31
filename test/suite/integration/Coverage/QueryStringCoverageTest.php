@@ -445,13 +445,15 @@ class QueryStringCoverageTest extends CoverageTestCase
 
         // TODO: fix finding of the parameters like this: ArrayObjectPHP[0][UndocumentedArrayObject] or ArrayObjectPHP[][UndocumentedArrayObject]
 
-        /** @var TypeObject $undocumentedObject */
-        $undocumentedObject = current($get->findQueryParameters('UndocumentedObject'));
-        $this->assertNotDocumented($undocumentedObject);
-        foreach ($undocumentedObject->getProperties() as $property) {
-            // TODO: fix the UndocumentedObject properties showing as documented, but the whole object is not
-            // same is with all objects, e.g. UndocumentedArrayObject and others
+        /** @var Parameter $undocumentedObjectParameter */
+        $undocumentedObjectParameter = current($get->findQueryParameters('UndocumentedObject'));
+        $this->assertNotDocumented($undocumentedObjectParameter);
+        /** @var TypeObject $undocumentedObjectParameterType */
+        $undocumentedObjectParameterType = $undocumentedObjectParameter->getType();
+        foreach ($undocumentedObjectParameterType->getProperties() as $property) {
             $this->assertNotDocumented($property);
         }
+
+        // TODO: add more asserts for all cases
     }
 }

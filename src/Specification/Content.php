@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
-class Content
+class Content extends CoverageElement
 {
     use PropertyTrait;
 

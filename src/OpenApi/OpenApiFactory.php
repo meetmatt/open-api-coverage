@@ -23,19 +23,6 @@ class OpenApiFactory implements SpecificationFactoryInterface
     {
         $openApi = $this->reader->readFromFile($filePath);
 
-        $specification = new Specification();
-
-        foreach ($openApi->paths as $uriPath => $spec) {
-            $path = $specification->addPath($uriPath);
-            foreach ($spec->getOperations() as $httpMethod => $openApiOperation) {
-                $operation = $path->addOperation($httpMethod);
-
-                $this->parser->parseParameters($operation, $openApiOperation);
-                $this->parser->parseRequests($operation, $openApiOperation);
-                $this->parser->parseResponses($operation, $openApiOperation);
-            }
-        }
-
-        return $specification;
+        return $this->parser->parsePaths($openApi);
     }
 }
