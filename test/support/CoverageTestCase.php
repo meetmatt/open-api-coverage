@@ -12,6 +12,7 @@ use MeetMatt\OpenApiSpecCoverage\Specification\CoverageElement;
 use MeetMatt\OpenApiSpecCoverage\Specification\Operation;
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
 use MeetMatt\OpenApiSpecCoverage\Specification\Printer;
+use MeetMatt\OpenApiSpecCoverage\Specification\Typed;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeEnum;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeScalar;
 use MeetMatt\OpenApiSpecCoverage\TestRecorder\TestRecorder;
@@ -42,22 +43,54 @@ class CoverageTestCase extends TestCase
 
     protected function assertDocumented(CoverageElement $element): void
     {
-        $this->assertTrue($element->isDocumented());
+        $this->assertTrue($element->isDocumented(), sprintf('Expected %s to be marked as documented', get_class($element)));
     }
 
     protected function assertExecuted(CoverageElement $element): void
     {
-        $this->assertTrue($element->isExecuted());
+        $this->assertTrue($element->isExecuted(), sprintf('Expected %s to be marked as executed', get_class($element)));
     }
 
     protected function assertNotDocumented(CoverageElement $element): void
     {
-        $this->assertFalse($element->isDocumented());
+        $this->assertFalse($element->isDocumented(), sprintf('Expected %s to be marked as not documented', get_class($element)));
     }
 
     protected function assertNotExecuted(CoverageElement $element): void
     {
-        $this->assertFalse($element->isExecuted());
+        $this->assertFalse($element->isExecuted(), sprintf('Expected %s to be marked as not executed', get_class($element)));
+    }
+
+    protected function assertDocumentedRecursive(CoverageElement $element): void
+    {
+        $this->assertDocumented($element);
+        if ($element instanceof Typed && $element->getType() instanceof CoverageElement) {
+            $this->assertDocumentedRecursive($element->getType());
+        }
+    }
+
+    protected function assertExecutedRecursive(CoverageElement $element): void
+    {
+        $this->assertExecuted($element);
+        if ($element instanceof Typed && $element->getType() instanceof CoverageElement) {
+            $this->assertExecutedRecursive($element->getType());
+        }
+    }
+
+    protected function assertNotDocumentedRecursive(CoverageElement $element): void
+    {
+        $this->assertNotDocumented($element);
+        if ($element instanceof Typed && $element->getType() instanceof CoverageElement) {
+            $this->assertNotDocumentedRecursive($element->getType());
+        }
+    }
+
+    protected function assertNotExecutedRecursive(CoverageElement $element): void
+    {
+        $this->assertNotExecuted($element);
+        if ($element instanceof Typed && $element->getType() instanceof CoverageElement) {
+            $this->assertNotExecutedRecursive($element->getType());
+        }
     }
 
     protected function assertPathParameter(Operation $operation, string $paramName): Parameter
@@ -67,6 +100,20 @@ class CoverageTestCase extends TestCase
         $this->assertCount(1, $params);
 
         return current($params);
+    }
+
+    protected function assertQueryParameter(Operation $operation, string $paramName, bool $isDocumented = null, bool $isExecuted = null): Parameter
+    {
+        $param = $operation->findQueryParameter($paramName);
+
+        if ($isDocumented !== null) {
+            $this->assertEquals($isDocumented, $param->isDocumented());
+        }
+        if ($isExecuted !== null) {
+            $this->assertEquals($isExecuted, $param->isExecuted());
+        }
+
+        return $param;
     }
 
     protected function assertScalarPathParameter(Operation $operation, string $paramName): void
@@ -89,7 +136,21 @@ class CoverageTestCase extends TestCase
         $this->assertDocumented($paramType);
 
         $this->assertEquals($documented, $paramType->getDocumentedExecutedEnum());
-        $this->assertEquals($uncovered, $paramType->getNonExecutedEnum());
+        $this->assertEquals($uncovered, $paramType->getNotExecutedEnum());
+        $this->assertEmpty($paramType->getUndocumentedEnum());
+    }
+
+    protected function assertEnumQueryParameter(Operation $operation, string $paramName, array $documented, array $uncovered): void
+    {
+        $param = $this->assertQueryParameter($operation, $paramName);
+
+        /** @var TypeEnum $paramType */
+        $paramType = $param->getType();
+        $this->assertExecuted($paramType);
+        $this->assertDocumented($paramType);
+
+        $this->assertEquals($documented, $paramType->getDocumentedExecutedEnum());
+        $this->assertEquals($uncovered, $paramType->getNotExecutedEnum());
         $this->assertEmpty($paramType->getUndocumentedEnum());
     }
 

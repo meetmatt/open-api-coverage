@@ -39,7 +39,7 @@ class TypeEnum extends TypeAbstract implements RegexSerializable, Typed
     /**
      * @return float[]|int[]|string[]
      */
-    public function getNonExecutedEnum(): array
+    public function getNotExecutedEnum(): array
     {
         return array_values(array_diff($this->enum, $this->executedEnum));
     }

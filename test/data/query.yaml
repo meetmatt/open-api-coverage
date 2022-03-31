@@ -9,26 +9,6 @@ paths:
     get:
       description: Path with multiple query parameters.
       parameters:
-        - name: ArrayObjectPHP[]
-          in: query
-          style: form
-          explode: true
-          schema:
-            $ref: '#/components/schemas/Object'
-        - name: ArrayObject
-          in: query
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Object'
-        - name: Object
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            $ref: '#/components/schemas/Object'
         - name: String
           in: query
           schema:
@@ -107,84 +87,104 @@ paths:
               enum:
                 - 1
                 - 2
-        - name: UcoveredString
-          in: query
-          schema:
-            type: string
-        - name: UcoveredNumber
-          in: query
-          schema:
-            type: number
-        - name: UcoveredInteger
-          in: query
-          schema:
-            type: integer
-        - name: UcoveredEnumString
-          in: query
-          schema:
-            type: string
-            enum:
-              - one
-              - two
-        - name: UcoveredEnumNumber
-          in: query
-          schema:
-            type: number
-            enum:
-              - 1.1
-              - 2.2
-        - name: UcoveredEnumInteger
-          in: query
-          schema:
-            type: integer
-            enum:
-              - 1
-              - 2
-        - name: UcoveredArrayString
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-        - name: UcoveredArrayNumber
-          in: query
-          schema:
-            type: array
-            items:
-              type: number
-        - name: UcoveredArrayInteger
-          in: query
-          schema:
-            type: array
-            items:
-              type: integer
-        - name: UcoveredArrayEnumString
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - one
-                - two
-        - name: UcoveredArrayEnumNumber
-          in: query
-          schema:
-            type: array
-            items:
-              type: number
-              enum:
-                - 1.1
-                - 2.2
-        - name: UcoveredArrayEnumInteger
-          in: query
-          schema:
-            type: array
-            items:
-              type: integer
-              enum:
-                - 1
-                - 2
+#        - name: ArrayObjectPHP[]
+#          in: query
+#          style: form
+#          explode: true
+#          schema:
+#            $ref: '#/components/schemas/Object'
+#        - name: ArrayObject
+#          in: query
+#          style: form
+#          explode: true
+#          schema:
+#            type: array
+#            items:
+#              $ref: '#/components/schemas/Object'
+#        - name: Object
+#          in: query
+#          style: deepObject
+#          explode: true
+#          schema:
+#            $ref: '#/components/schemas/Object'
+#        - name: UcoveredString
+#          in: query
+#          schema:
+#            type: string
+#        - name: UcoveredNumber
+#          in: query
+#          schema:
+#            type: number
+#        - name: UcoveredInteger
+#          in: query
+#          schema:
+#            type: integer
+#        - name: UcoveredEnumString
+#          in: query
+#          schema:
+#            type: string
+#            enum:
+#              - one
+#              - two
+#        - name: UcoveredEnumNumber
+#          in: query
+#          schema:
+#            type: number
+#            enum:
+#              - 1.1
+#              - 2.2
+#        - name: UcoveredEnumInteger
+#          in: query
+#          schema:
+#            type: integer
+#            enum:
+#              - 1
+#              - 2
+#        - name: UcoveredArrayString
+#          in: query
+#          schema:
+#            type: array
+#            items:
+#              type: string
+#        - name: UcoveredArrayNumber
+#          in: query
+#          schema:
+#            type: array
+#            items:
+#              type: number
+#        - name: UcoveredArrayInteger
+#          in: query
+#          schema:
+#            type: array
+#            items:
+#              type: integer
+#        - name: UcoveredArrayEnumString
+#          in: query
+#          schema:
+#            type: array
+#            items:
+#              type: string
+#              enum:
+#                - one
+#                - two
+#        - name: UcoveredArrayEnumNumber
+#          in: query
+#          schema:
+#            type: array
+#            items:
+#              type: number
+#              enum:
+#                - 1.1
+#                - 2.2
+#        - name: UcoveredArrayEnumInteger
+#          in: query
+#          schema:
+#            type: array
+#            items:
+#              type: integer
+#              enum:
+#                - 1
+#                - 2
       responses:
         200:
           description: Response
@@ -206,19 +206,16 @@ components:
           enum:
             - one
             - two
-            - uncovered
         EnumNumber:
           type: number
           enum:
             - 1.1
             - 2.2
-            - 9.9
         EnumInteger:
           type: integer
           enum:
             - 1
             - 2
-            - 9
         ArrayString:
           type: array
           items:
@@ -238,7 +235,6 @@ components:
             enum:
               - one
               - two
-              - uncovered
         ArrayEnumNumber:
           type: array
           items:
@@ -246,7 +242,6 @@ components:
             enum:
               - 1.1
               - 2.2
-              - 9.9
         ArrayEnumInteger:
           type: array
           items:
@@ -254,4 +249,3 @@ components:
             enum:
               - 1
               - 2
-              - 9

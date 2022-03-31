@@ -32,7 +32,6 @@ paths:
             enum:
               - one
               - two
-              - uncovered
         - name: EnumNumber
           in: path
           description: Number enum path parameter.
@@ -41,7 +40,6 @@ paths:
             enum:
               - 1.1
               - 2.2
-              - 9.9
         - name: EnumInteger
           in: path
           description: Integer enum path parameter.
@@ -50,7 +48,6 @@ paths:
             enum:
               - 1
               - 2
-              - 9
       responses:
         200:
           description: Response

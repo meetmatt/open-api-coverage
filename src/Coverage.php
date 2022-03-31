@@ -69,14 +69,14 @@ class Coverage
 
                 $passedQueryParams = $request->getQueryParams();
                 foreach ($passedQueryParams as $passedParamName => $passedParamValue) {
-                    $passedParamType = $this->convertToType($passedParamValue);
-                    $specParam       = $operation->findQueryParameter($passedParamName, $passedParamType);
+                    $specParam = $operation->findQueryParameter($passedParamName);
 
                     $passedParamExistsInSpec = $specParam !== null;
 
+                    $passedParamType = $this->convertToType($passedParamValue);
                     if ($passedParamExistsInSpec) {
                         $specParam->executed();
-                        $doTypesMatch  = $this->compareTypes($passedParamType, $specParam->getType());
+                        $doTypesMatch = $this->diffTypes($passedParamType, $specParam->getType());
                         if (!$doTypesMatch) {
                             // types don't match -> new undocumented parameter
                             $passedParamExistsInSpec = false;
@@ -116,7 +116,7 @@ class Coverage
                     $passedContentExists = $requestBody !== null;
                     if ($passedContentExists) {
                         $requestBody->executed();
-                        if (!$this->compareTypes($passedContent, $requestBody->getType())) {
+                        if (!$this->diffTypes($passedContent, $requestBody->getType())) {
                             $passedContentExists = false;
                         }
                     }
@@ -151,44 +151,33 @@ class Coverage
         return $specification;
     }
 
-    private function compareTypes(TypeAbstract $passedType, TypeAbstract $specType): bool
+    private function diffTypes(TypeAbstract $passedType, TypeAbstract $specType): bool
     {
         if ($passedType instanceof TypeArray && $specType instanceof TypeArray) {
-            if ($this->compareTypes($passedType->getType(), $specType->getType())) {
-                $specType->executed();
-
-                return true;
-            }
-
-            return false;
+            return $this->diffTypes($passedType->getType(), $specType->getType());
         }
 
         if ($passedType instanceof TypeObject && $specType instanceof TypeObject) {
-            $specProperties         = $specType->getProperties();
-            $passedProperties       = $passedType->getProperties();
-            $undocumentedProperties = array_combine(
-                array_map(static fn(Property $property) => $property->getName(), $passedProperties),
-                $passedProperties
-            );
+            $passedProperties = $passedType->getProperties();
 
-            foreach ($specProperties as $specProperty) {
+            $undocumentedProperties = [];
+            foreach ($passedProperties as $prop) {
+                $undocumentedProperties[$prop->getName()] = clone $prop;
+            }
+
+            foreach ($specType->getProperties() as $specProperty) {
                 foreach ($passedProperties as $passedProperty) {
                     if ($passedProperty->getName() === $specProperty->getName()) {
-                        $passedPropertyType = $passedProperty->getType();
-                        $specPropertyType   = $specProperty->getType();
-
                         $specProperty->executed();
-                        $doPropertyTypesMatch = $this->compareTypes($passedPropertyType, $specPropertyType);
-                        if ($doPropertyTypesMatch) {
-                            $specPropertyType->executed();
+
+                        if ($this->diffTypes($passedProperty->getType(), $specProperty->getType())) {
+                            $specProperty->getType()->executed();
                             unset($undocumentedProperties[$specProperty->getName()]);
                         }
                     }
                 }
             }
 
-            // add all unmatched passed properties as undocumented
-            /** @var Property[] $undocumentedProperties */
             foreach ($undocumentedProperties as $undocumentedProperty) {
                 $undocumentedProperty->executed();
                 $this->markAsExecuted($undocumentedProperty->getType());
@@ -214,10 +203,12 @@ class Coverage
                     return true;
                 }
             } elseif ($specType instanceof TypeEnum) {
-                if ($this->compareTypes($passedType, $specType->getType())) {
+                if ($this->diffTypes($passedType, $specType->getType())) {
                     if ($passedType->getValue() !== null) {
                         $specType->setEnumValueAsExecuted($passedType->getValue());
                     }
+
+                    $this->markAsExecuted($specType);
 
                     return true;
                 }

@@ -98,19 +98,19 @@ class Printer
         } elseif ($type instanceof TypeEnum) {
             $flat[$name] = [];
 
-            $documentedCoveredEnums = $type->getDocumentedExecutedEnum();
-            if (!empty($documentedCoveredEnums)) {
+            $documentedExecutedEnums = $type->getDocumentedExecutedEnum();
+            if (!empty($documentedExecutedEnums)) {
                 $flat[$name][] = [
-                    'v' => '<' . $type->getType()->getType() . '>' . json_encode($documentedCoveredEnums),
+                    'v' => '<' . $type->getType()->getType() . '>' . json_encode($documentedExecutedEnums),
                     'd' => '+',
                     'x' => '+',
                 ];
             }
 
-            $uncoveredEnums = $type->getNonExecutedEnum();
-            if (!empty($uncoveredEnums)) {
+            $notExecutedEnum = $type->getNotExecutedEnum();
+            if (!empty($notExecutedEnum)) {
                 $flat[$name][] = [
-                    'v' => '<' . $type->getType()->getType() . '>' . json_encode($uncoveredEnums),
+                    'v' => '<' . $type->getType()->getType() . '>' . json_encode($notExecutedEnum),
                     'd' => '+',
                     'x' => '-',
                 ];
