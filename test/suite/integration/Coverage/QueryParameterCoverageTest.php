@@ -138,7 +138,7 @@ class QueryParameterCoverageTest extends CoverageTestCase
         $path = $spec->path('/resource');
         $get  = $path->operation('get');
 
-        $this->printer->print($spec);
+        $this->print($spec);
 
         $params = [
             'String',

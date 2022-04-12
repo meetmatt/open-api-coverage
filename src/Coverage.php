@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace MeetMatt\OpenApiSpecCoverage;
 
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
-use MeetMatt\OpenApiSpecCoverage\Specification\Property;
 use MeetMatt\OpenApiSpecCoverage\Specification\RequestBody;
+use MeetMatt\OpenApiSpecCoverage\Specification\Response;
 use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationException;
 use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
@@ -127,24 +127,41 @@ class Coverage
                         $operation->addRequestBody($requestBody);
                     }
                 }
-                // TODO: calculate coverage of response contents
+
+                // find called response status code in the spec -> mark as executed
+                $actualResponseStatusCode = (string)$response->getStatusCode();
+                $specificationResponse    = $operation->findResponseByStatusCode($actualResponseStatusCode);
+                if ($specificationResponse === null) {
+                    // undocumented response status code
+                    $specificationResponse = new Response($actualResponseStatusCode);
+                    $operation->addResponse($specificationResponse);
+                }
+                $specificationResponse->executed();
             }
 
             if ($operation === null || $response === null) {
-                // assertion was called without a prior API call
+                // TODO: warning: assertion was called without a prior API call
                 continue;
             }
 
             if ($log instanceof ResponseStatusCodeAssertion) {
                 // TODO: calculate coverage of response status code by assertion
+                $assertedResponseStatusCode = $log->getStatusCode();
+                if ($actualResponseStatusCode !== $assertedResponseStatusCode) {
+                    // TODO: warning: asserted status code didn't match actual status code
+                } else {
+                    $specificationResponse->asserted();
+                }
             }
 
             if ($log instanceof ResponseContentTypeAssertion) {
                 // TODO: calculate coverage of response content type by assertion
+                $responseContentType = $response->getHeader('Content-type');
             }
 
             if ($log instanceof ResponseContentAssertion) {
                 // TODO: calculate coverage of response content by assertion
+                $responseContent = $response->getBody();
             }
         }
 

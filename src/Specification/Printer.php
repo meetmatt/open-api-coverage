@@ -36,15 +36,6 @@ class Printer
                     $types += self::flattenTypeTree('request.' . $requestBody->getContentType(), $requestBody->getType());
                 }
 
-                // TODO: print response contents coverage
-                // foreach ($operation->getResponses() as $response) {
-                //     foreach ($response->getContents() as $responseBody) {
-                //         foreach ($responseBody->getProperties() as $property) {
-                //             $types += self::flattenTypeTree('response.' . $property->getName(), $property->getType());
-                //         }
-                //     }
-                // }
-
                 foreach ($types as $key => $value) {
                     if (!isset($value[0])) {
                         $value = [$value];
@@ -55,16 +46,37 @@ class Printer
                             $val['v'],
                             $val['d'],
                             $val['x'],
+                            ' ',
                         ];
                     }
                 }
+
+                // TODO: print response contents coverage
+                foreach ($operation->getResponses() as $response) {
+                    // one response -> one status code
+                    $data[$uriPath][$httpMethod][] = [
+                        'response.statusCode',
+                        $response->getStatusCode(),
+                        $response->isDocumented() ? '+' : '-',
+                        $response->isExecuted()   ? '+' : '-',
+                        $response->isAsserted()   ? '+' : '-',
+                    ];
+                }
+
+                // foreach ($operation->getResponses() as $response) {
+                //     foreach ($response->getContents() as $responseBody) {
+                //         foreach ($responseBody->getProperties() as $property) {
+                //             $types += self::flattenTypeTree('response.' . $property->getName(), $property->getType());
+                //         }
+                //     }
+                // }
             }
         }
 
         $output = new ConsoleOutput();
         $table  = new Table($output);
         $table->setStyle('box');
-        $table->setHeaders(['Path', 'HTTP Method', 'Element', 'Type', 'Documented', 'Executed']);
+        $table->setHeaders(['Path', 'HTTP Method', 'Element', 'Type', 'Documented', 'Executed', 'Asserted']);
         foreach ($data as $path => $operations) {
             foreach ($operations as $operation => $params) {
                 $table->addRow(
@@ -94,6 +106,7 @@ class Printer
                 'v' => '<' . $type->getType() . '>',
                 'd' => $type->isDocumented() ? '+' : '-',
                 'x' => $type->isExecuted() ? '+' : '-',
+                'a' => $type->isAsserted() ? '+' : '-',
             ];
         } elseif ($type instanceof TypeEnum) {
             $flat[$name] = [];
@@ -104,6 +117,7 @@ class Printer
                     'v' => '<' . $type->getType()->getType() . '>' . json_encode($documentedExecutedEnums),
                     'd' => '+',
                     'x' => '+',
+                    'a' => ' ',
                 ];
             }
 
@@ -113,6 +127,7 @@ class Printer
                     'v' => '<' . $type->getType()->getType() . '>' . json_encode($notExecutedEnum),
                     'd' => '+',
                     'x' => '-',
+                    'a' => ' ',
                 ];
             }
 
@@ -122,6 +137,7 @@ class Printer
                     'v' => '<' . $type->getType()->getType() . '>' . json_encode($undocumentedEnums),
                     'd' => '-',
                     'x' => '+',
+                    'a' => ' ',
                 ];
             }
         } elseif ($type instanceof TypeArray) {
@@ -135,6 +151,7 @@ class Printer
                         'v' => $val['v'],
                         'd' => $val['d'],
                         'x' => $val['x'],
+                        'a' => $val['a'],
                     ];
                 }
             }
@@ -152,6 +169,7 @@ class Printer
                             'v' => $val['v'],
                             'd' => $val['d'],
                             'x' => $val['x'],
+                            'a' => $val['a'],
                         ];
                     }
                 }

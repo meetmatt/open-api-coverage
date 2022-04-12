@@ -93,8 +93,8 @@ class OpenApiSpecificationParser
             return;
         }
 
-        foreach ($openApiOperation->responses as $httpStatusCode => $openApiResponse) {
-            $response = new Response((string)$httpStatusCode);
+        foreach ($openApiOperation->responses as $statusCode => $openApiResponse) {
+            $response = new Response((string)$statusCode);
             $response->documented();
             $operation->addResponse($response);
 
@@ -102,7 +102,7 @@ class OpenApiSpecificationParser
                 continue;
             }
 
-            $this->parseResponseContents((string)$httpStatusCode, $response, $openApiResponse);
+            $this->parseResponseContents((string)$statusCode, $response, $openApiResponse);
         }
     }
 

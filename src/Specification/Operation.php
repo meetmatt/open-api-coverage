@@ -130,4 +130,15 @@ class Operation extends CoverageElement
 
         return null;
     }
+
+    public function findResponseByStatusCode(string $statusCode): ?Response
+    {
+        foreach ($this->responses as $response) {
+            if ($response->getStatusCode() === $statusCode) {
+                return $response;
+            }
+        }
+
+        return null;
+    }
 }

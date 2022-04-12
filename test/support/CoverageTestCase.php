@@ -12,6 +12,7 @@ use MeetMatt\OpenApiSpecCoverage\Specification\CoverageElement;
 use MeetMatt\OpenApiSpecCoverage\Specification\Operation;
 use MeetMatt\OpenApiSpecCoverage\Specification\Parameter;
 use MeetMatt\OpenApiSpecCoverage\Specification\Printer;
+use MeetMatt\OpenApiSpecCoverage\Specification\Specification;
 use MeetMatt\OpenApiSpecCoverage\Specification\Typed;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeEnum;
 use MeetMatt\OpenApiSpecCoverage\Specification\TypeScalar;
@@ -51,6 +52,11 @@ class CoverageTestCase extends TestCase
         $this->assertTrue($element->isExecuted(), sprintf('Expected %s to be marked as executed', get_class($element)));
     }
 
+    protected function assertAsserted(CoverageElement $element): void
+    {
+        $this->assertTrue($element->isAsserted(), sprintf('Expected %s to be marked as asserted', get_class($element)));
+    }
+
     protected function assertNotDocumented(CoverageElement $element): void
     {
         $this->assertFalse($element->isDocumented(), sprintf('Expected %s to be marked as not documented', get_class($element)));
@@ -59,6 +65,11 @@ class CoverageTestCase extends TestCase
     protected function assertNotExecuted(CoverageElement $element): void
     {
         $this->assertFalse($element->isExecuted(), sprintf('Expected %s to be marked as not executed', get_class($element)));
+    }
+
+    protected function assertNotAsserted(CoverageElement $element): void
+    {
+        $this->assertFalse($element->isAsserted(), sprintf('Expected %s to be marked as not asserted', get_class($element)));
     }
 
     protected function assertDocumentedRecursive(CoverageElement $element): void
@@ -180,5 +191,17 @@ class CoverageTestCase extends TestCase
         $response = new Response($statusCode);
 
         $this->recorder->recordHttpCall($request, $response);
+    }
+
+    protected function recordStatusCodeAsserted(string $statusCode): void
+    {
+        $this->recorder->statusCodeAsserted($statusCode);
+    }
+
+    protected function print(Specification $spec): void
+    {
+        if (\Codeception\Util\Debug::isEnabled()) {
+            $this->printer->print($spec);
+        }
     }
 }

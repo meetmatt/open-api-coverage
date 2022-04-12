@@ -38,7 +38,7 @@ class RequestBodyCoverageTest extends CoverageTestCase
         ];
 
         foreach ($bodies as $body) {
-            $this->recordHttpCall('post', 'http://server/pets', 201, [], $body);
+            $this->recordHttpCall('post', 'http://server/pets', 200, [], $body);
         }
 
         $spec = $this->coverage->process($this->container->getSpecFile('petstore_post.yaml'), $this->recorder);
@@ -59,6 +59,6 @@ class RequestBodyCoverageTest extends CoverageTestCase
 
         // TODO: add more asserts
 
-        $this->printer->print($spec);
+        $this->print($spec);
     }
 }
