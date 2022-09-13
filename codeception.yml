@@ -13,3 +13,5 @@ coverage:
   enabled: true
   show_only_summary: true
   show_uncovered: false
+  include:
+    - src/*
