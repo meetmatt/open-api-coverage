@@ -6,15 +6,11 @@ namespace MeetMatt\OpenApiSpecCoverage\TestRecorder;
 
 class ResponseContentAssertion
 {
-    /** @var string|array */
-    private $content;
-
     /**
      * @param string|array $content
      */
-    public function __construct($content)
+    public function __construct(private $content)
     {
-        $this->content = $content;
     }
 
     /**

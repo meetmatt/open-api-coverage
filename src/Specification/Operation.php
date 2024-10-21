@@ -6,8 +6,6 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Operation extends CoverageElement
 {
-    private string $httpMethod;
-
     /** @var Parameter[] */
     private array $pathParameters = [];
 
@@ -20,9 +18,8 @@ class Operation extends CoverageElement
     /** @var Response[] */
     private array $responses = [];
 
-    public function __construct(string $httpMethod)
+    public function __construct(private readonly string $httpMethod)
     {
-        $this->httpMethod = $httpMethod;
     }
 
     public function getHttpMethod(): string
@@ -110,7 +107,7 @@ class Operation extends CoverageElement
                 $queryParameter->getName() === $queryParameterName
                 && (
                     $queryParameterType === null
-                    || get_class($queryParameter->getType()) === get_class($queryParameterType)
+                    || $queryParameter->getType()::class === $queryParameterType::class
                 )
             ) {
                 return $queryParameter;

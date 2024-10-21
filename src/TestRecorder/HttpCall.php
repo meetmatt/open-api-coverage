@@ -9,14 +9,8 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class HttpCall
 {
-    private ServerRequestInterface $request;
-
-    private ResponseInterface $response;
-
-    public function __construct(ServerRequestInterface $request, ResponseInterface $response)
+    public function __construct(private readonly ServerRequestInterface $request, private readonly ResponseInterface $response)
     {
-        $this->request  = $request;
-        $this->response = $response;
     }
 
     public function getRequest(): ServerRequestInterface

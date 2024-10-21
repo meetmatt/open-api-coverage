@@ -8,11 +8,8 @@ class Property extends CoverageElement implements Typed
 {
     use TypedTrait;
 
-    private string $name;
-
-    public function __construct(string $name, TypeAbstract $type)
+    public function __construct(private string $name, TypeAbstract $type)
     {
-        $this->name = $name;
         $this->type = $type;
     }
 

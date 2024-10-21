@@ -8,19 +8,12 @@ use RuntimeException;
 
 class TypeScalar extends TypeAbstract implements RegexSerializable
 {
-    private string $type;
-
-    /** @var float|int|string|null */
-    private $value;
-
     /**
      * @param string                $type
      * @param float|int|string|null $value
      */
-    public function __construct(string $type, $value = null)
+    public function __construct(private readonly string $type, private $value = null)
     {
-        $this->type  = $type;
-        $this->value = $value;
     }
 
     public function getType(): string
@@ -38,23 +31,11 @@ class TypeScalar extends TypeAbstract implements RegexSerializable
 
     public function asRegex(): string
     {
-        switch ($this->type) {
-            case 'string':
-                // forward slashes and dots don't work correctly in path parameters
-                return '[^./]+';
-
-            case 'float':
-            case 'number':
-                return '(0|[1-9]+)?\.\d*';
-
-            case 'integer':
-                return '\d+';
-
-            case 'boolean':
-            case 'array':
-            case 'object':
-            default:
-                throw new RuntimeException(sprintf('Unsupported parameter type: %s', $this->type));
-        }
+        return match ($this->type) {
+            'string' => '[^./]+',
+            'float', 'number' => '(0|[1-9]+)?\.\d*',
+            'integer' => '\d+',
+            default => throw new RuntimeException(sprintf('Unsupported parameter type: %s', $this->type)),
+        };
     }
 }

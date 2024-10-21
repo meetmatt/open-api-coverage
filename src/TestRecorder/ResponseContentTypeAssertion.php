@@ -6,11 +6,8 @@ namespace MeetMatt\OpenApiSpecCoverage\TestRecorder;
 
 class ResponseContentTypeAssertion
 {
-    private string $contentType;
-
-    public function __construct(string $contentType)
+    public function __construct(private readonly string $contentType)
     {
-        $this->contentType = $contentType;
     }
 
     public function getContentType(): string

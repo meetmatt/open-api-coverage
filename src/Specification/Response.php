@@ -6,14 +6,11 @@ namespace MeetMatt\OpenApiSpecCoverage\Specification;
 
 class Response extends CoverageElement
 {
-    private string $statusCode;
-
     /** @var Content[] */
     private array $contents = [];
 
-    public function __construct(string $statusCode)
+    public function __construct(private readonly string $statusCode)
     {
-        $this->statusCode = $statusCode;
     }
 
     public function getStatusCode(): string

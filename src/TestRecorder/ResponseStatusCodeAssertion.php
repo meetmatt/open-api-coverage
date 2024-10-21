@@ -6,11 +6,8 @@ namespace MeetMatt\OpenApiSpecCoverage\TestRecorder;
 
 class ResponseStatusCodeAssertion
 {
-    private string $statusCode;
-
-    public function __construct(string $statusCode)
+    public function __construct(private readonly string $statusCode)
     {
-        $this->statusCode = $statusCode;
     }
 
     public function getStatusCode(): string

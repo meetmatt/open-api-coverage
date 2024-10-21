@@ -8,11 +8,8 @@ class Content extends CoverageElement
 {
     use PropertyTrait;
 
-    private string $contentType;
-
-    public function __construct(string $contentType)
+    public function __construct(private string $contentType)
     {
-        $this->contentType = $contentType;
     }
 
     public function getContentType(): string

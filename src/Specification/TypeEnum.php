@@ -9,15 +9,12 @@ class TypeEnum extends TypeAbstract implements RegexSerializable, Typed
     use TypedTrait;
 
     /** @var string[]|int[]|float[] */
-    private array $enum;
-
-    /** @var string[]|int[]|float[] */
     private array $executedEnum = [];
 
-    public function __construct(TypeScalar $type, array $enum)
+    public function __construct(TypeScalar $type, /** @var string[]|int[]|float[] */
+    private array $enum)
     {
         $this->type = $type;
-        $this->enum = $enum;
     }
 
     /**

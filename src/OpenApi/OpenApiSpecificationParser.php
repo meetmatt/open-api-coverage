@@ -16,11 +16,8 @@ use MeetMatt\OpenApiSpecCoverage\Specification\TypeArray;
 
 class OpenApiSpecificationParser
 {
-    private OpenApiSchemaParser $parser;
-
-    public function __construct(OpenApiSchemaParser $parser)
+    public function __construct(private readonly OpenApiSchemaParser $parser)
     {
-        $this->parser = $parser;
     }
 
     public function parsePaths(OpenApi $openApi): Specification

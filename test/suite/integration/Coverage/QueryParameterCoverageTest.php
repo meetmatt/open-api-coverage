@@ -48,7 +48,7 @@ class QueryParameterCoverageTest extends CoverageTestCase
                 'ArrayEnumNumber'  => [3.3],
                 'ArrayEnumInteger' => [3],
             ],
-            
+
             /*
                         'Documented ArrayObject' => [
                             'ArrayObject' => [

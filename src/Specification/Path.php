@@ -8,14 +8,11 @@ class Path extends CoverageElement
 {
     private array $matchedPathParameters = [];
 
-    private string $uriPath;
-
     /** @var Operation[] */
     private array $operations = [];
 
-    public function __construct(string $uriPath)
+    public function __construct(private readonly string $uriPath)
     {
-        $this->uriPath = $uriPath;
     }
 
     public function addOperation(string $httpMethod): Operation

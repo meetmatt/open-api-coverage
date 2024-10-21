@@ -8,11 +8,8 @@ class RequestBody extends CoverageElement implements Typed
 {
     use TypedTrait;
 
-    private string $contentType;
-
-    public function __construct(string $contentType, TypeAbstract $type)
+    public function __construct(private string $contentType, TypeAbstract $type)
     {
-        $this->contentType = $contentType;
         $this->type        = $type;
     }
 

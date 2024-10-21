@@ -24,11 +24,8 @@ use MeetMatt\OpenApiSpecCoverage\TestRecorder\TestRecorder;
 
 class Coverage
 {
-    private SpecificationFactoryInterface $factory;
-
-    public function __construct(SpecificationFactoryInterface $factory)
+    public function __construct(private readonly SpecificationFactoryInterface $factory)
     {
-        $this->factory = $factory;
     }
 
     /**

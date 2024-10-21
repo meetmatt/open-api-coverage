@@ -28,13 +28,13 @@ class RequestBodyCoverageTest extends CoverageTestCase
                 'tags'   => ['cute', 'undocumented'],
             ],
             // TODO: fix issue with comparing expected object vs list of objects / list of lists
-            // [
-            //     [
-            //         'name'   => 'Nesty',
-            //         'family' => 'cat',
-            //         'tags'   => ['cute'],
-            //     ]
-            // ]
+            [
+                [
+                    'name'   => 'Nesty',
+                    'family' => 'cat',
+                    'tags'   => ['cute'],
+                ]
+            ]
         ];
 
         foreach ($bodies as $body) {

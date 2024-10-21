@@ -19,16 +19,10 @@ class OpenApiReader
 
         $type = strtolower(pathinfo($specFile, PATHINFO_EXTENSION));
 
-        switch ($type) {
-            case 'yml':
-            case 'yaml':
-                return Reader::readFromYamlFile($specFile, OpenApi::class, ReferenceContext::RESOLVE_MODE_ALL);
-
-            case 'json':
-                return Reader::readFromJsonFile($specFile, OpenApi::class, ReferenceContext::RESOLVE_MODE_ALL);
-
-            default:
-                throw new InvalidArgumentException("Unsupported spec format: $type. Supported formats: yml/yaml, json.");
-        }
+        return match ($type) {
+            'yml', 'yaml' => Reader::readFromYamlFile($specFile, OpenApi::class, ReferenceContext::RESOLVE_MODE_ALL),
+            'json' => Reader::readFromJsonFile($specFile, OpenApi::class, ReferenceContext::RESOLVE_MODE_ALL),
+            default => throw new InvalidArgumentException("Unsupported spec format: $type. Supported formats: yml/yaml, json."),
+        };
     }
 }

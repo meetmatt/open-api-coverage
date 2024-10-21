@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MeetMatt\OpenApiSpecCoverage\Test\Support;
 
 use Codeception\PHPUnit\TestCase;
+use Codeception\Util\Debug;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
 use MeetMatt\OpenApiSpecCoverage\Coverage;
@@ -44,32 +45,32 @@ class CoverageTestCase extends TestCase
 
     protected function assertDocumented(CoverageElement $element): void
     {
-        $this->assertTrue($element->isDocumented(), sprintf('Expected %s to be marked as documented', get_class($element)));
+        $this->assertTrue($element->isDocumented(), sprintf('Expected %s to be marked as documented', $element::class));
     }
 
     protected function assertExecuted(CoverageElement $element): void
     {
-        $this->assertTrue($element->isExecuted(), sprintf('Expected %s to be marked as executed', get_class($element)));
+        $this->assertTrue($element->isExecuted(), sprintf('Expected %s to be marked as executed', $element::class));
     }
 
     protected function assertAsserted(CoverageElement $element): void
     {
-        $this->assertTrue($element->isAsserted(), sprintf('Expected %s to be marked as asserted', get_class($element)));
+        $this->assertTrue($element->isAsserted(), sprintf('Expected %s to be marked as asserted', $element::class));
     }
 
     protected function assertNotDocumented(CoverageElement $element): void
     {
-        $this->assertFalse($element->isDocumented(), sprintf('Expected %s to be marked as not documented', get_class($element)));
+        $this->assertFalse($element->isDocumented(), sprintf('Expected %s to be marked as not documented', $element::class));
     }
 
     protected function assertNotExecuted(CoverageElement $element): void
     {
-        $this->assertFalse($element->isExecuted(), sprintf('Expected %s to be marked as not executed', get_class($element)));
+        $this->assertFalse($element->isExecuted(), sprintf('Expected %s to be marked as not executed', $element::class));
     }
 
     protected function assertNotAsserted(CoverageElement $element): void
     {
-        $this->assertFalse($element->isAsserted(), sprintf('Expected %s to be marked as not asserted', get_class($element)));
+        $this->assertFalse($element->isAsserted(), sprintf('Expected %s to be marked as not asserted', $element::class));
     }
 
     protected function assertDocumentedRecursive(CoverageElement $element): void
@@ -200,7 +201,7 @@ class CoverageTestCase extends TestCase
 
     protected function print(Specification $spec): void
     {
-        if (\Codeception\Util\Debug::isEnabled()) {
+        if (Debug::isEnabled()) {
             $this->printer->print($spec);
         }
     }

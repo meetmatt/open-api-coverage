@@ -9,14 +9,8 @@ use MeetMatt\OpenApiSpecCoverage\Specification\SpecificationFactoryInterface;
 
 class OpenApiFactory implements SpecificationFactoryInterface
 {
-    private OpenApiReader $reader;
-
-    private OpenApiSpecificationParser $parser;
-
-    public function __construct(OpenApiReader $reader, OpenApiSpecificationParser $parser)
+    public function __construct(private readonly OpenApiReader $reader, private readonly OpenApiSpecificationParser $parser)
     {
-        $this->reader = $reader;
-        $this->parser = $parser;
     }
 
     public function fromFile(string $filePath): Specification
